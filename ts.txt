@@ -1,0 +1,788 @@
+====GLTFMODELDEBUGINFO=======SCENEHIERARCHY&MATERIALS====Object: unnamed,
+Type: Group,
+Visible: true=Object: rig_bot,
+Type: Object3D,
+Visible: true=Object: geo_arm_bot_5,
+Type: Object3D,
+Visible: true=Object: geo_body_bot_4,
+Type: Object3D,
+Visible: true=Object: geo_head_bot_5,
+Type: Object3D,
+Visible: true=Object: DEF-Antenna003,
+Type: Bone,
+Visible: true=Object: DEF-Antenna002,
+Type: Bone,
+Visible: true=Object: DEF-Antenna001,
+Type: Bone,
+Visible: true=Object: DEF-Antenna,
+Type: Bone,
+Visible: true=Object: DEF-Head,
+Type: Bone,
+Visible: true=Object: DEF-Eye_5,
+Type: Bone,
+Visible: true=Object: DEF-Eye_4,
+Type: Bone,
+Visible: true=Object: DEF-Eye_2,
+Type: Bone,
+Visible: true=Object: Eye_Master,
+Type: Bone,
+Visible: true=Object: eye_5,
+Type: Bone,
+Visible: true=Object: eye_2,
+Type: Bone,
+Visible: true=Object: DEF-Eye,
+Type: Bone,
+Visible: true=Object: Eye,
+Type: Bone,
+Visible: true=Object: eye_4,
+Type: Bone,
+Visible: true=Object: DEF-Body,
+Type: Bone,
+Visible: true=Object: DEF-upper_armL,
+Type: Bone,
+Visible: true=Object: DEF-upper_armL001,
+Type: Bone,
+Visible: true=Object: DEF-forearmL,
+Type: Bone,
+Visible: true=Object: DEF-forearmL001,
+Type: Bone,
+Visible: true=Object: DEF-handL,
+Type: Bone,
+Visible: true=Object: DEF-f_index01L,
+Type: Bone,
+Visible: true=Object: DEF-f_index02L,
+Type: Bone,
+Visible: true=Object: DEF-f_index03L,
+Type: Bone,
+Visible: true=Object: DEF-thumb01L,
+Type: Bone,
+Visible: true=Object: DEF-thumb02L,
+Type: Bone,
+Visible: true=Object: DEF-thumb03L,
+Type: Bone,
+Visible: true=Object: DEF-palm01L,
+Type: Bone,
+Visible: true=Object: DEF-f_middle01L,
+Type: Bone,
+Visible: true=Object: DEF-f_middle02L,
+Type: Bone,
+Visible: true=Object: DEF-f_middle03L,
+Type: Bone,
+Visible: true=Object: DEF-palm02L,
+Type: Bone,
+Visible: true=Object: DEF-f_pinky01L,
+Type: Bone,
+Visible: true=Object: DEF-f_pinky02L,
+Type: Bone,
+Visible: true=Object: DEF-f_pinky03L,
+Type: Bone,
+Visible: true=Object: DEF-palm04L,
+Type: Bone,
+Visible: true=Object: DEF-upper_armR,
+Type: Bone,
+Visible: true=Object: DEF-upper_armR001,
+Type: Bone,
+Visible: true=Object: DEF-forearmR,
+Type: Bone,
+Visible: true=Object: DEF-forearmR001,
+Type: Bone,
+Visible: true=Object: DEF-handR,
+Type: Bone,
+Visible: true=Object: DEF-f_index01R,
+Type: Bone,
+Visible: true=Object: DEF-f_index02R,
+Type: Bone,
+Visible: true=Object: DEF-f_index03R,
+Type: Bone,
+Visible: true=Object: DEF-thumb01R,
+Type: Bone,
+Visible: true=Object: DEF-thumb02R,
+Type: Bone,
+Visible: true=Object: DEF-thumb03R,
+Type: Bone,
+Visible: true=Object: DEF-palm01R,
+Type: Bone,
+Visible: true=Object: DEF-f_middle01R,
+Type: Bone,
+Visible: true=Object: DEF-f_middle02R,
+Type: Bone,
+Visible: true=Object: DEF-f_middle03R,
+Type: Bone,
+Visible: true=Object: DEF-palm02R,
+Type: Bone,
+Visible: true=Object: DEF-f_pinky01R,
+Type: Bone,
+Visible: true=Object: DEF-f_pinky02R,
+Type: Bone,
+Visible: true=Object: DEF-f_pinky03R,
+Type: Bone,
+Visible: true=Object: DEF-palm04R,
+Type: Bone,
+Visible: true=Object: geo_arm_bot_5_1,
+Type: SkinnedMesh,
+Visible: true=-Meshgeometry: {
+  "data": {
+    "attributes": [
+      Object
+    ],
+    "boundingSphere": [
+      Object
+    ],
+    "index": [
+      Object
+    ]
+  },
+  "metadata": {
+    "generator": "BufferGeometry.toJSON",
+    "type": "BufferGeometry",
+    "version": 4.6
+  },
+  "type": "BufferGeometry",
+  "uuid": "2fb91f4a-6664-4a74-bb68-cc23422dc6a8"
+}=-Meshmaterial: {
+  "anisotropy": 0,
+  "anisotropyRotation": 0,
+  "attenuationColor": 16777215,
+  "blendColor": 0,
+  "clearcoat": 0,
+  "clearcoatRoughness": 0,
+  "color": 16777215,
+  "dispersion": 0,
+  "emissive": 0,
+  "envMapIntensity": 1,
+  "envMapRotation": [
+    0,
+    0,
+    0,
+    "XYZ"
+  ],
+  "images": [
+    [
+      Object
+    ],
+    [
+      Object
+    ],
+    [
+      Object
+    ]
+  ],
+  "iridescence": 0,
+  "iridescenceIOR": 1.3,
+  "iridescenceThicknessRange": [
+    100,
+    400
+  ],
+  "map": "04b3d730-bb2e-436c-a5f7-340d1836e865",
+  "metadata": {
+    "generator": "Material.toJSON",
+    "type": "Material",
+    "version": 4.6
+  },
+  "metalness": 1,
+  "metalnessMap": "615df734-71af-413f-8c72-85696d8f7dc6",
+  "name": "mat_bot_5",
+  "normalMap": "acccaf43-8a69-4619-a702-cd2fadc05d44",
+  "normalMapType": 0,
+  "normalScale": [
+    1,
+    -1
+  ],
+  "reflectivity": 0.4591837131892669,
+  "roughness": 1,
+  "roughnessMap": "615df734-71af-413f-8c72-85696d8f7dc6",
+  "sheen": 0,
+  "sheenColor": 0,
+  "sheenRoughness": 1,
+  "side": 2,
+  "specularColor": 16777215,
+  "specularIntensity": 0.6272727251052856,
+  "textures": [
+    [
+      Object
+    ],
+    [
+      Object
+    ],
+    [
+      Object
+    ]
+  ],
+  "thickness": 0,
+  "transmission": 0,
+  "type": "MeshPhysicalMaterial",
+  "uuid": "dfe0dede-36a3-45eb-a518-d5481e191a61"
+}=-Materialtype: MeshPhysicalMaterial=-Materialcolor: 16777215=-Materialmap: {
+  "anisotropy": 1,
+  "center": [
+    0,
+    0
+  ],
+  "channel": 0,
+  "colorSpace": "srgb",
+  "flipY": false,
+  "format": 1023,
+  "generateMipmaps": true,
+  "image": "01c022bb-b8c6-46e6-b0ca-5f0f5c960af6",
+  "internalFormat": null,
+  "magFilter": 1006,
+  "mapping": 300,
+  "metadata": {
+    "generator": "Texture.toJSON",
+    "type": "Texture",
+    "version": 4.6
+  },
+  "minFilter": 1008,
+  "name": "mat_bot_5 (Base Color)",
+  "offset": [
+    0,
+    0
+  ],
+  "premultiplyAlpha": false,
+  "repeat": [
+    1,
+    1
+  ],
+  "rotation": 0,
+  "type": 1009,
+  "unpackAlignment": 4,
+  "userData": {
+    "mimeType": "image/png"
+  },
+  "uuid": "04b3d730-bb2e-436c-a5f7-340d1836e865",
+  "wrap": [
+    1000,
+    1000
+  ]
+}=-Materialtransparent: false=-Materialopacity: 1=-Materialvisible: true=Object: geo_body_bot_4_1,
+Type: SkinnedMesh,
+Visible: true=-Meshgeometry: {
+  "data": {
+    "attributes": [
+      Object
+    ],
+    "boundingSphere": [
+      Object
+    ],
+    "index": [
+      Object
+    ]
+  },
+  "metadata": {
+    "generator": "BufferGeometry.toJSON",
+    "type": "BufferGeometry",
+    "version": 4.6
+  },
+  "type": "BufferGeometry",
+  "uuid": "d4107ff3-9296-4633-bfa9-cb6f0fbb3a12"
+}=-Meshmaterial: {
+  "anisotropy": 0,
+  "anisotropyRotation": 0,
+  "attenuationColor": 16777215,
+  "blendColor": 0,
+  "clearcoat": 0,
+  "clearcoatRoughness": 0,
+  "color": 16777215,
+  "dispersion": 0,
+  "emissive": 16777215,
+  "emissiveMap": "b2acc993-61ed-4082-a7b2-bf562d1bde1b",
+  "envMapIntensity": 1,
+  "envMapRotation": [
+    0,
+    0,
+    0,
+    "XYZ"
+  ],
+  "images": [
+    [
+      Object
+    ],
+    [
+      Object
+    ],
+    [
+      Object
+    ],
+    [
+      Object
+    ]
+  ],
+  "iridescence": 0,
+  "iridescenceIOR": 1.3,
+  "iridescenceThicknessRange": [
+    100,
+    400
+  ],
+  "map": "eac13b3f-36cc-4f1b-bba0-a91bda559c8e",
+  "metadata": {
+    "generator": "Material.toJSON",
+    "type": "Material",
+    "version": 4.6
+  },
+  "metalness": 1,
+  "metalnessMap": "1eddf986-faa1-47c8-ac8e-6b9fb3073f13",
+  "name": "mat_bot_4",
+  "normalMap": "d2e33a5f-c7fd-4286-ba84-b7dce3833750",
+  "normalMapType": 0,
+  "normalScale": [
+    1,
+    -1
+  ],
+  "reflectivity": 0.4591837131892669,
+  "roughness": 1,
+  "roughnessMap": "1eddf986-faa1-47c8-ac8e-6b9fb3073f13",
+  "sheen": 0,
+  "sheenColor": 0,
+  "sheenRoughness": 1,
+  "side": 2,
+  "specularColor": 16777215,
+  "specularIntensity": 0.6272727251052856,
+  "textures": [
+    [
+      Object
+    ],
+    [
+      Object
+    ],
+    [
+      Object
+    ],
+    [
+      Object
+    ]
+  ],
+  "thickness": 0,
+  "transmission": 0,
+  "type": "MeshPhysicalMaterial",
+  "uuid": "e130aed9-afd4-4c35-9c4b-5db7a82dae59"
+}=-Materialtype: MeshPhysicalMaterial=-Materialcolor: 16777215=-Materialmap: {
+  "anisotropy": 1,
+  "center": [
+    0,
+    0
+  ],
+  "channel": 0,
+  "colorSpace": "srgb",
+  "flipY": false,
+  "format": 1023,
+  "generateMipmaps": true,
+  "image": "4ab089f5-3f8f-4a51-90d0-c64286e15996",
+  "internalFormat": null,
+  "magFilter": 1006,
+  "mapping": 300,
+  "metadata": {
+    "generator": "Texture.toJSON",
+    "type": "Texture",
+    "version": 4.6
+  },
+  "minFilter": 1008,
+  "name": "mat_bot_4 (Base Color)",
+  "offset": [
+    0,
+    0
+  ],
+  "premultiplyAlpha": false,
+  "repeat": [
+    1,
+    1
+  ],
+  "rotation": 0,
+  "type": 1009,
+  "unpackAlignment": 4,
+  "userData": {
+    "mimeType": "image/png"
+  },
+  "uuid": "eac13b3f-36cc-4f1b-bba0-a91bda559c8e",
+  "wrap": [
+    1000,
+    1000
+  ]
+}=-Materialtransparent: false=-Materialopacity: 1=-Materialvisible: true=Object: geo_head_bot_5_1,
+Type: Object3D,
+Visible: true=Object: geo_head_bot_5_primitive0,
+Type: SkinnedMesh,
+Visible: true=-Meshgeometry: {
+  "data": {
+    "attributes": [
+      Object
+    ],
+    "boundingSphere": [
+      Object
+    ],
+    "index": [
+      Object
+    ]
+  },
+  "metadata": {
+    "generator": "BufferGeometry.toJSON",
+    "type": "BufferGeometry",
+    "version": 4.6
+  },
+  "type": "BufferGeometry",
+  "uuid": "ddadab34-9051-4c28-8ac1-e1bc551ae973"
+}=-Meshmaterial: {
+  "anisotropy": 0,
+  "anisotropyRotation": 0,
+  "attenuationColor": 16777215,
+  "blendColor": 0,
+  "clearcoat": 0,
+  "clearcoatRoughness": 0,
+  "color": 16777215,
+  "dispersion": 0,
+  "emissive": 0,
+  "envMapIntensity": 1,
+  "envMapRotation": [
+    0,
+    0,
+    0,
+    "XYZ"
+  ],
+  "images": [
+    [
+      Object
+    ],
+    [
+      Object
+    ],
+    [
+      Object
+    ]
+  ],
+  "iridescence": 0,
+  "iridescenceIOR": 1.3,
+  "iridescenceThicknessRange": [
+    100,
+    400
+  ],
+  "map": "04b3d730-bb2e-436c-a5f7-340d1836e865",
+  "metadata": {
+    "generator": "Material.toJSON",
+    "type": "Material",
+    "version": 4.6
+  },
+  "metalness": 1,
+  "metalnessMap": "615df734-71af-413f-8c72-85696d8f7dc6",
+  "name": "mat_bot_5",
+  "normalMap": "acccaf43-8a69-4619-a702-cd2fadc05d44",
+  "normalMapType": 0,
+  "normalScale": [
+    1,
+    -1
+  ],
+  "reflectivity": 0.4591837131892669,
+  "roughness": 1,
+  "roughnessMap": "615df734-71af-413f-8c72-85696d8f7dc6",
+  "sheen": 0,
+  "sheenColor": 0,
+  "sheenRoughness": 1,
+  "side": 2,
+  "specularColor": 16777215,
+  "specularIntensity": 0.6272727251052856,
+  "textures": [
+    [
+      Object
+    ],
+    [
+      Object
+    ],
+    [
+      Object
+    ]
+  ],
+  "thickness": 0,
+  "transmission": 0,
+  "type": "MeshPhysicalMaterial",
+  "uuid": "dfe0dede-36a3-45eb-a518-d5481e191a61"
+}=-Materialtype: MeshPhysicalMaterial=-Materialcolor: 16777215=-Materialmap: {
+  "anisotropy": 1,
+  "center": [
+    0,
+    0
+  ],
+  "channel": 0,
+  "colorSpace": "srgb",
+  "flipY": false,
+  "format": 1023,
+  "generateMipmaps": true,
+  "image": "01c022bb-b8c6-46e6-b0ca-5f0f5c960af6",
+  "internalFormat": null,
+  "magFilter": 1006,
+  "mapping": 300,
+  "metadata": {
+    "generator": "Texture.toJSON",
+    "type": "Texture",
+    "version": 4.6
+  },
+  "minFilter": 1008,
+  "name": "mat_bot_5 (Base Color)",
+  "offset": [
+    0,
+    0
+  ],
+  "premultiplyAlpha": false,
+  "repeat": [
+    1,
+    1
+  ],
+  "rotation": 0,
+  "type": 1009,
+  "unpackAlignment": 4,
+  "userData": {
+    "mimeType": "image/png"
+  },
+  "uuid": "04b3d730-bb2e-436c-a5f7-340d1836e865",
+  "wrap": [
+    1000,
+    1000
+  ]
+}=-Materialtransparent: false=-Materialopacity: 1=-Materialvisible: true=Object: geo_head_bot_5_primitive1,
+Type: SkinnedMesh,
+Visible: true=-Meshgeometry: {
+  "data": {
+    "attributes": [
+      Object
+    ],
+    "boundingSphere": [
+      Object
+    ],
+    "index": [
+      Object
+    ]
+  },
+  "metadata": {
+    "generator": "BufferGeometry.toJSON",
+    "type": "BufferGeometry",
+    "version": 4.6
+  },
+  "type": "BufferGeometry",
+  "uuid": "964a9a9e-ad34-4a13-9164-ff4a7212d03e"
+}=-Meshmaterial: {
+  "anisotropy": 0,
+  "anisotropyRotation": 0,
+  "attenuationColor": 16777215,
+  "blendColor": 0,
+  "clearcoat": 0,
+  "clearcoatRoughness": 0,
+  "color": 16777215,
+  "depthWrite": false,
+  "dispersion": 0,
+  "emissive": 16777215,
+  "emissiveMap": "64f10819-e328-4d01-a4dd-971ac39404b0",
+  "envMapIntensity": 1,
+  "envMapRotation": [
+    0,
+    0,
+    0,
+    "XYZ"
+  ],
+  "images": [
+    [
+      Object
+    ],
+    [
+      Object
+    ]
+  ],
+  "iridescence": 0,
+  "iridescenceIOR": 1.3,
+  "iridescenceThicknessRange": [
+    100,
+    400
+  ],
+  "map": "d7897d0f-83bc-414a-aab1-08cc0b959e05",
+  "metadata": {
+    "generator": "Material.toJSON",
+    "type": "Material",
+    "version": 4.6
+  },
+  "metalness": 0,
+  "name": "mat_bot_mouth",
+  "reflectivity": 0.4591837131892669,
+  "roughness": 0.4000000059604645,
+  "sheen": 0,
+  "sheenColor": 0,
+  "sheenRoughness": 1,
+  "side": 2,
+  "specularColor": 16777215,
+  "specularIntensity": 0.6272727251052856,
+  "textures": [
+    [
+      Object
+    ],
+    [
+      Object
+    ]
+  ],
+  "thickness": 0,
+  "transmission": 0,
+  "transparent": true,
+  "type": "MeshPhysicalMaterial",
+  "uuid": "ce419b23-4c55-40ff-9b5c-0bd2b0f3e20a"
+}=-Materialtype: MeshPhysicalMaterial=-Materialcolor: 16777215=-Materialmap: {
+  "anisotropy": 1,
+  "center": [
+    0,
+    0
+  ],
+  "channel": 0,
+  "colorSpace": "srgb",
+  "flipY": false,
+  "format": 1023,
+  "generateMipmaps": true,
+  "image": "f20de8b0-635a-4202-82ec-7590b1b06c4f",
+  "internalFormat": null,
+  "magFilter": 1006,
+  "mapping": 300,
+  "metadata": {
+    "generator": "Texture.toJSON",
+    "type": "Texture",
+    "version": 4.6
+  },
+  "minFilter": 1008,
+  "name": "mat_bot_mouth (Base Color)",
+  "offset": [
+    0,
+    0
+  ],
+  "premultiplyAlpha": false,
+  "repeat": [
+    1,
+    1
+  ],
+  "rotation": 0,
+  "type": 1009,
+  "unpackAlignment": 4,
+  "userData": {
+    "mimeType": "image/png"
+  },
+  "uuid": "d7897d0f-83bc-414a-aab1-08cc0b959e05",
+  "wrap": [
+    1000,
+    1000
+  ]
+}=-Materialtransparent: true=-Materialopacity: 1=-Materialvisible: true=Object: geo_head_bot_5_primitive2,
+Type: SkinnedMesh,
+Visible: true=-Meshgeometry: {
+  "data": {
+    "attributes": [
+      Object
+    ],
+    "boundingSphere": [
+      Object
+    ],
+    "index": [
+      Object
+    ]
+  },
+  "metadata": {
+    "generator": "BufferGeometry.toJSON",
+    "type": "BufferGeometry",
+    "version": 4.6
+  },
+  "type": "BufferGeometry",
+  "uuid": "810711d3-06a8-4215-8ba3-d09a189eb73c"
+}=-Meshmaterial: {
+  "anisotropy": 0,
+  "anisotropyRotation": 0,
+  "attenuationColor": 16777215,
+  "blendColor": 0,
+  "clearcoat": 0,
+  "clearcoatRoughness": 0,
+  "color": 16777215,
+  "depthWrite": false,
+  "dispersion": 0,
+  "emissive": 16777215,
+  "emissiveMap": "7585c071-eb48-40b8-8b8f-0c1cb37d300e",
+  "envMapIntensity": 1,
+  "envMapRotation": [
+    0,
+    0,
+    0,
+    "XYZ"
+  ],
+  "images": [
+    [
+      Object
+    ],
+    [
+      Object
+    ]
+  ],
+  "iridescence": 0,
+  "iridescenceIOR": 1.3,
+  "iridescenceThicknessRange": [
+    100,
+    400
+  ],
+  "map": "270919a6-de09-49b8-91f1-558db0521724",
+  "metadata": {
+    "generator": "Material.toJSON",
+    "type": "Material",
+    "version": 4.6
+  },
+  "metalness": 0,
+  "name": "mat_bot_1_eye",
+  "reflectivity": 0.4591837131892669,
+  "roughness": 0.4000000059604645,
+  "sheen": 0,
+  "sheenColor": 0,
+  "sheenRoughness": 1,
+  "side": 2,
+  "specularColor": 16777215,
+  "specularIntensity": 0.6272727251052856,
+  "textures": [
+    [
+      Object
+    ],
+    [
+      Object
+    ]
+  ],
+  "thickness": 0,
+  "transmission": 0,
+  "transparent": true,
+  "type": "MeshPhysicalMaterial",
+  "uuid": "2e4a9ec7-72ec-4c26-9364-738db539c35f"
+}=-Materialtype: MeshPhysicalMaterial=-Materialcolor: 16777215=-Materialmap: {
+  "anisotropy": 1,
+  "center": [
+    0,
+    0
+  ],
+  "channel": 0,
+  "colorSpace": "srgb",
+  "flipY": false,
+  "format": 1023,
+  "generateMipmaps": true,
+  "image": "a313025b-907f-4e37-863d-5f02d061f11e",
+  "internalFormat": null,
+  "magFilter": 1006,
+  "mapping": 300,
+  "metadata": {
+    "generator": "Texture.toJSON",
+    "type": "Texture",
+    "version": 4.6
+  },
+  "minFilter": 1008,
+  "name": "mat_bot_1_eye (Base Color)",
+  "offset": [
+    0,
+    0
+  ],
+  "premultiplyAlpha": false,
+  "repeat": [
+    1,
+    1
+  ],
+  "rotation": 0,
+  "type": 1009,
+  "unpackAlignment": 4,
+  "userData": {
+    "mimeType": "image/png"
+  },
+  "uuid": "270919a6-de09-49b8-91f1-558db0521724",
+  "wrap": [
+    1000,
+    1000
+  ]
+}=-Materialtransparent: true=-Materialopacity: 1=-Materialvisible: true====FIXINGMATERIALCOMPATIBILITY====Convertinggeo_arm_bot_5_1fromMeshPhysicalMaterialtoMeshStandardMaterial=Convertinggeo_body_bot_4_1fromMeshPhysicalMaterialtoMeshStandardMaterial=Convertinggeo_head_bot_5_primitive0fromMeshPhysicalMaterialtoMeshStandardMaterial=Convertinggeo_head_bot_5_primitive1fromMeshPhysicalMaterialtoMeshStandardMaterial=Convertinggeo_head_bot_5_primitive2fromMeshPhysicalMaterialtoMeshStandardMaterial
