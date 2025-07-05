@@ -164,12 +164,24 @@ export class OpenAIRealtimeService {
 
   private async getEphemeralKey(): Promise<string> {
     try {
+      const requestBody = {
+        model: this.config.model || 'gpt-4o-mini-realtime-preview-2024-12-17',
+        voice: this.config.voice || 'alloy',
+      };
+
+      console.log(
+        'Making request to:',
+        'https://4489-103-151-43-82.ngrok-free.app/api/openai/ephemeral-key',
+      );
+      console.log('Request body:', JSON.stringify(requestBody, null, 2));
+      console.log('Request headers:', {
+        Authorization: 'Bearer oLpqgPOKSM46Q4oBMNoBCg5akasjd2jhv1',
+        'Content-Type': 'application/json',
+      });
+
       const response = await axios.post(
         'https://4489-103-151-43-82.ngrok-free.app/api/openai/ephemeral-key',
-        {
-          model: this.config.model || 'gpt-4o-mini-realtime-preview-2024-12-17',
-          voice: this.config.voice || 'alloy',
-        },
+        requestBody,
         {
           headers: {
             Authorization: 'Bearer oLpqgPOKSM46Q4oBMNoBCg5akasjd2jhv1',
@@ -178,16 +190,24 @@ export class OpenAIRealtimeService {
         },
       );
 
-      if (!response.data.client_secret?.value) {
+      console.log('Response status:', response.status);
+      console.log('Response data:', JSON.stringify(response.data, null, 2));
+
+      if (!response.data.data?.ephemeralKey) {
         throw new Error('No ephemeral key received from server');
       }
 
-      return response.data.client_secret.value;
+      return response.data.data.ephemeralKey;
     } catch (error) {
       console.error('Error in getEphemeralKey:', error);
       if (axios.isAxiosError(error)) {
+        console.error('Response status:', error.response?.status);
+        console.error('Response data:', error.response?.data);
+        console.error('Response headers:', error.response?.headers);
         throw new Error(
-          `Failed to get ephemeral key: ${error.response?.status} ${error.response?.data}`,
+          `Failed to get ephemeral key: ${
+            error.response?.status
+          } ${JSON.stringify(error.response?.data)}`,
         );
       }
       throw error;

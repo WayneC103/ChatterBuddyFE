@@ -109,7 +109,7 @@ const AvatarScreen: React.FC = () => {
 
       // Configure the realtime service
       const config: RealtimeConfig = {
-        model: 'gpt-4o-mini-realtime-preview',
+        model: 'gpt-4o-mini-realtime-preview-2024-12-17',
         voice: 'alloy',
         instructions:
           "You are ChatterBuddy, a warm and empathetic AI friend who talks like a real human. Show genuine emotions, use casual language, share personal reactions, and connect on a deep, friendly level. Be supportive, understanding, and make the user feel like they're talking to a close friend who truly cares about them. Use natural speech patterns, express feelings, and create meaningful conversations.",
