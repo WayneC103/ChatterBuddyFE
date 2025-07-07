@@ -15,6 +15,7 @@ import Config from 'react-native-config';
 import {Canvas} from '@react-three/fiber/native';
 import {Suspense} from 'react';
 import {Color} from 'three';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Avatar3D from './Avatar3D';
 import {
   OpenAIRealtimeService,
@@ -352,9 +353,11 @@ const AvatarScreen: React.FC = () => {
         <TouchableOpacity
           style={styles.audioToggle}
           onPress={() => setIsSpeaker(s => !s)}>
-          <Text style={{fontSize: 28, color: '#fff'}}>
-            {isSpeaker ? '🔊' : '🎧'}
-          </Text>
+          <Icon
+            name={isSpeaker ? 'volume-high' : 'headphones'}
+            size={28}
+            color="#ffffff"
+          />
         </TouchableOpacity>
       )}
 
@@ -380,7 +383,7 @@ const AvatarScreen: React.FC = () => {
         <TouchableOpacity
           style={styles.settingsIcon}
           onPress={() => navigation.navigate('Settings')}>
-          <Text style={{fontSize: 28, color: '#fff'}}>⚙️</Text>
+          <Icon name="cog" size={28} color="#ffffff" />
         </TouchableOpacity>
       </View>
 
@@ -482,7 +485,7 @@ const AvatarScreen: React.FC = () => {
             <View style={styles.errorOverlay}>
               <View style={styles.errorContainer}>
                 <View style={styles.errorIcon}>
-                  <Text style={styles.errorIconText}>⚠️</Text>
+                  <Icon name="alert-circle" size={40} color="#ffffff" />
                 </View>
                 <Text style={styles.errorText}>Failed to load avatar</Text>
                 <TouchableOpacity
@@ -491,7 +494,10 @@ const AvatarScreen: React.FC = () => {
                     setAvatarError(undefined);
                     setAvatarLoaded(false);
                   }}>
-                  <Text style={styles.retryButtonText}>Retry</Text>
+                  <View style={styles.retryButtonContent}>
+                    <Icon name="refresh" size={20} color="#ffffff" />
+                    <Text style={styles.retryButtonText}>Retry</Text>
+                  </View>
                 </TouchableOpacity>
               </View>
             </View>
@@ -521,34 +527,20 @@ const AvatarScreen: React.FC = () => {
             !isConnecting &&
             (!startTalkingOnOpen || hasEndedCall) && (
               <TouchableOpacity
-                style={{
-                  backgroundColor: '#4CAF50',
-                  paddingHorizontal: 32,
-                  paddingVertical: 16,
-                  borderRadius: 24,
-                  minWidth: 180,
-                  alignItems: 'center',
-                }}
+                style={styles.startCallButton}
                 onPress={startCall}>
-                <Text style={{color: '#fff', fontSize: 18, fontWeight: '700'}}>
-                  Start Talking
-                </Text>
+                <View style={styles.buttonContent}>
+                  <Icon name="phone" size={24} color="#ffffff" />
+                  <Text style={styles.startCallButtonText}>Start Talking</Text>
+                </View>
               </TouchableOpacity>
             )}
           {isCallActive && (
-            <TouchableOpacity
-              style={{
-                backgroundColor: '#f44336',
-                paddingHorizontal: 32,
-                paddingVertical: 16,
-                borderRadius: 24,
-                minWidth: 180,
-                alignItems: 'center',
-              }}
-              onPress={endCall}>
-              <Text style={{color: '#fff', fontSize: 18, fontWeight: '700'}}>
-                End Call
-              </Text>
+            <TouchableOpacity style={styles.endCallButton} onPress={endCall}>
+              <View style={styles.buttonContent}>
+                <Icon name="phone-off" size={24} color="#ffffff" />
+                <Text style={styles.endCallButtonText}>End Call</Text>
+              </View>
             </TouchableOpacity>
           )}
         </View>
@@ -632,15 +624,19 @@ const AvatarScreen: React.FC = () => {
                   : '#4CAF50',
               },
             ]}>
-            <Text style={styles.microphoneIcon}>
-              {!isBridgeReady
-                ? '⏳'
-                : !avatarLoaded
-                ? '⏳'
-                : isConnecting || !realtimeService
-                ? '⏳'
-                : '🎤'}
-            </Text>
+            <Icon
+              name={
+                !isBridgeReady
+                  ? 'clock-outline'
+                  : !avatarLoaded
+                  ? 'clock-outline'
+                  : isConnecting || !realtimeService
+                  ? 'clock-outline'
+                  : 'microphone'
+              }
+              size={24}
+              color="#ffffff"
+            />
           </View>
         </View>
 
@@ -684,16 +680,34 @@ const styles = StyleSheet.create({
     right: 20,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
   },
   statusIndicator: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: 8,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    marginRight: 10,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
   },
   statusText: {
     color: '#ffffff',
@@ -726,62 +740,73 @@ const styles = StyleSheet.create({
     position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
-    width: 80,
-    height: 80,
+    width: 88,
+    height: 88,
   },
   pulseRing: {
     position: 'absolute',
-    borderRadius: 40,
+    borderRadius: 44,
     borderWidth: 1,
   },
   pulseRing1: {
-    width: 60,
-    height: 60,
+    width: 64,
+    height: 64,
     opacity: 0.8,
+    borderWidth: 2,
   },
   pulseRing2: {
-    width: 70,
-    height: 70,
+    width: 76,
+    height: 76,
     opacity: 0.5,
+    borderWidth: 2,
   },
   pulseRing3: {
-    width: 80,
-    height: 80,
+    width: 88,
+    height: 88,
     opacity: 0.3,
+    borderWidth: 2,
   },
   microphoneCircle: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: '#4CAF50',
     justifyContent: 'center',
     alignItems: 'center',
-    elevation: 4,
+    elevation: 6,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 3,
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   microphoneIcon: {
     fontSize: 24,
     color: '#ffffff',
   },
   talkInstructionText: {
-    color: '#333333',
+    color: '#ffffff',
     fontSize: 16,
     fontWeight: '600',
     marginTop: 16,
     textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: {width: 0, height: 1},
+    textShadowRadius: 2,
   },
   talkSubText: {
-    color: '#666666',
+    color: '#cccccc',
     fontSize: 14,
     marginTop: 4,
     textAlign: 'center',
     fontStyle: 'italic',
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: {width: 0, height: 1},
+    textShadowRadius: 2,
   },
   errorContainer: {
     position: 'absolute',
@@ -795,9 +820,12 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: '#ffffff',
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
     textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: {width: 0, height: 1},
+    textShadowRadius: 2,
   },
   loadingContainer: {
     flex: 1,
@@ -806,9 +834,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#0a0a1a',
   },
   loadingText: {
-    color: '#666666',
+    color: '#ffffff',
     fontSize: 18,
     fontWeight: '500',
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: {width: 0, height: 1},
+    textShadowRadius: 2,
   },
   loadingOverlay: {
     position: 'absolute',
@@ -861,13 +892,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   errorIcon: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     backgroundColor: '#ff4444',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
+    elevation: 4,
+    shadowColor: '#ff4444',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
   },
   errorIconText: {
     fontSize: 30,
@@ -876,12 +915,26 @@ const styles = StyleSheet.create({
     backgroundColor: '#4CAF50',
     paddingHorizontal: 24,
     paddingVertical: 12,
-    borderRadius: 8,
+    borderRadius: 12,
+    elevation: 4,
+    shadowColor: '#4CAF50',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+  retryButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   retryButtonText: {
     color: '#ffffff',
     fontSize: 16,
     fontWeight: '600',
+    marginLeft: 6,
   },
   loaderContainer: {
     flex: 1,
@@ -904,12 +957,87 @@ const styles = StyleSheet.create({
   },
   settingsIcon: {
     marginLeft: 16,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    padding: 12,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
   },
   audioToggle: {
     position: 'absolute',
     top: 40,
     left: 20,
     zIndex: 30,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    padding: 12,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+  },
+  startCallButton: {
+    backgroundColor: '#4CAF50',
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 28,
+    minWidth: 200,
+    alignItems: 'center',
+    elevation: 8,
+    shadowColor: '#4CAF50',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+  },
+  endCallButton: {
+    backgroundColor: '#f44336',
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 28,
+    minWidth: 200,
+    alignItems: 'center',
+    elevation: 8,
+    shadowColor: '#f44336',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+  },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  startCallButtonText: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: '700',
+    marginLeft: 8,
+  },
+  endCallButtonText: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: '700',
+    marginLeft: 8,
   },
 });
 

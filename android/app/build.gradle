@@ -90,6 +90,15 @@ android {
         versionCode 1
         versionName "1.0"
     }
+    
+    // Vector Icons Configuration
+    sourceSets {
+        main {
+            assets.srcDirs += [
+                '../../node_modules/react-native-vector-icons/Fonts'
+            ]
+        }
+    }
     signingConfigs {
         debug {
             storeFile file('debug.keystore')
