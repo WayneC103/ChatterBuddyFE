@@ -186,7 +186,7 @@ export class OpenAIRealtimeService {
 
       console.log(
         'Making request to:',
-        'https://043f-103-151-43-82.ngrok-free.app/api/openai/ephemeral-key',
+        'https://tidy-ray-obviously.ngrok-free.app/api/openai/ephemeral-key',
       );
       console.log('Request body:', JSON.stringify(requestBody, null, 2));
       console.log('Request headers:', {
@@ -195,7 +195,7 @@ export class OpenAIRealtimeService {
       });
 
       const response = await axios.post(
-        'https://043f-103-151-43-82.ngrok-free.app/api/openai/ephemeral-key',
+        'https://tidy-ray-obviously.ngrok-free.app/api/openai/ephemeral-key',
         requestBody,
         {
           headers: {
