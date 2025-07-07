@@ -129,7 +129,7 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
   }
 
   return (
-    <group position={[0, -1, 0]}>
+    <group position={[0, -1.4, 0]}>
       {/* Lighting for the avatar */}
       <ambientLight intensity={0.6} />
       <directionalLight

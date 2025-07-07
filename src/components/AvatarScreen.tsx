@@ -252,7 +252,7 @@ const AvatarScreen: React.FC = () => {
         model: 'gpt-4o-mini-realtime-preview-2024-12-17',
         voice: 'echo',
         instructions:
-          "You are ChatterBuddy, a warm and empathetic AI friend who talks like a real human. Show genuine emotions, use casual language, share personal reactions, and connect on a deep, friendly level. Be supportive, understanding, and make the user feel like they're talking to a close friend who truly cares about them. Use natural speech patterns, express feelings, and create meaningful conversations.",
+          "You are ChatterBuddy, a warm and empathetic AI friend who talks like a real human. Start conversations in English, but be flexible and adapt to the user's preferred language. If they speak to you in another language, respond in that same language naturally. Show genuine emotions, use casual language, share personal reactions, and connect on a deep, friendly level. Be supportive, understanding, and make the user feel like they're talking to a close friend who truly cares about them. Use natural speech patterns, express feelings, and create meaningful conversations.",
       };
 
       // Create and start the service
@@ -348,38 +348,76 @@ const AvatarScreen: React.FC = () => {
     <View style={styles.container}>
       <StatusBar hidden />
 
-      {/* Audio Route Toggle (Android only) */}
-      {Platform.OS === 'android' && (
-        <TouchableOpacity
-          style={styles.audioToggle}
-          onPress={() => setIsSpeaker(s => !s)}>
-          <Icon
-            name={isSpeaker ? 'volume-high' : 'headphones'}
-            size={28}
-            color="#ffffff"
-          />
-        </TouchableOpacity>
-      )}
-
-      {/* Settings and Connection Status Row */}
+      {/* Settings and Connection Status Row (flexbox) */}
       <View style={styles.topRow}>
-        {isCallActive && (
-          <View style={styles.statusContainer}>
-            <View
-              style={[
-                styles.statusIndicator,
-                {
-                  backgroundColor:
-                    connectionState === 'connected' ? '#4CAF50' : '#ff9800',
-                },
-              ]}
-            />
-            <Text style={styles.statusText}>
-              {connectionState === 'connected' ? 'Connected' : 'Connecting...'}
-            </Text>
-          </View>
-        )}
-        {/* Settings Icon */}
+        <View style={styles.audioToggle}>
+          {Platform.OS === 'android' && (
+            <TouchableOpacity onPress={() => setIsSpeaker(s => !s)}>
+              <Icon
+                name={isSpeaker ? 'volume-high' : 'headphones'}
+                size={28}
+                color="#ffffff"
+              />
+            </TouchableOpacity>
+          )}
+        </View>
+        <View style={styles.statusContainer}>
+          <View
+            style={[
+              styles.statusIndicator,
+              {
+                backgroundColor: avatarError
+                  ? '#f44336'
+                  : !isBridgeReady
+                  ? '#888888'
+                  : !avatarLoaded
+                  ? '#ff9800'
+                  : isConnecting
+                  ? '#ff9800'
+                  : connectionState === 'connected'
+                  ? '#4CAF50'
+                  : hasEndedCall
+                  ? '#f44336'
+                  : '#888888',
+              },
+            ]}
+          />
+          <Icon
+            name={
+              avatarError
+                ? 'alert-circle'
+                : !isBridgeReady
+                ? 'clock-outline'
+                : !avatarLoaded
+                ? 'clock-outline'
+                : isConnecting
+                ? 'clock-outline'
+                : connectionState === 'connected'
+                ? 'phone'
+                : hasEndedCall
+                ? 'phone-off'
+                : 'phone-outline'
+            }
+            size={18}
+            color="#fff"
+            style={{marginRight: 6, marginLeft: 2}}
+          />
+          <Text style={styles.statusText}>
+            {avatarError
+              ? 'Failed to load model'
+              : !isBridgeReady
+              ? 'Initializing...'
+              : !avatarLoaded
+              ? 'Loading Model...'
+              : isConnecting
+              ? 'Connecting...'
+              : connectionState === 'connected'
+              ? 'Connected'
+              : hasEndedCall
+              ? 'Call Ended'
+              : 'Idle'}
+          </Text>
+        </View>
         <TouchableOpacity
           style={styles.settingsIcon}
           onPress={() => navigation.navigate('Settings')}>
@@ -514,34 +552,30 @@ const AvatarScreen: React.FC = () => {
 
       {/* If startTalkingOnOpen is false, show button to start talking or end call */}
       {settingsLoaded && (
-        <View
-          style={{
-            position: 'absolute',
-            bottom: 40,
-            left: 0,
-            right: 0,
-            alignItems: 'center',
-            zIndex: 10,
-          }}>
+        <View style={styles.bottomLeftButtonContainer}>
           {!isCallActive &&
             !isConnecting &&
             (!startTalkingOnOpen || hasEndedCall) && (
-              <TouchableOpacity
-                style={styles.startCallButton}
-                onPress={startCall}>
-                <View style={styles.buttonContent}>
-                  <Icon name="phone" size={24} color="#ffffff" />
-                  <Text style={styles.startCallButtonText}>Start Talking</Text>
-                </View>
-              </TouchableOpacity>
+              <View style={styles.bottomLeftButtonRow}>
+                <TouchableOpacity
+                  style={styles.bottomLeftIconButton}
+                  onPress={startCall}>
+                  <Icon name="phone" size={22} color="#fff" />
+                </TouchableOpacity>
+                <Text style={styles.bottomLeftButtonText}>Start Talking</Text>
+              </View>
             )}
           {isCallActive && (
-            <TouchableOpacity style={styles.endCallButton} onPress={endCall}>
-              <View style={styles.buttonContent}>
-                <Icon name="phone-off" size={24} color="#ffffff" />
-                <Text style={styles.endCallButtonText}>End Call</Text>
-              </View>
-            </TouchableOpacity>
+            <View style={styles.bottomLeftButtonRow}>
+              <TouchableOpacity
+                style={[styles.bottomLeftIconButton, styles.endButton]}
+                onPress={endCall}>
+                <Icon name="phone-off" size={22} color="#fff" />
+              </TouchableOpacity>
+              <Text style={[styles.bottomLeftButtonText, styles.endButtonText]}>
+                End Call
+              </Text>
+            </View>
           )}
         </View>
       )}
@@ -563,55 +597,8 @@ const AvatarScreen: React.FC = () => {
       {/* Call Control Button */}
       <View style={styles.buttonContainer}>
         <View style={styles.talkIndicator}>
-          {/* Pulsing rings */}
-          <View
-            style={[
-              styles.pulseRing,
-              styles.pulseRing1,
-              {
-                borderColor: !isBridgeReady
-                  ? '#cccccc'
-                  : !avatarLoaded
-                  ? '#888888'
-                  : isConnecting || !realtimeService
-                  ? '#ff9800'
-                  : '#4CAF50',
-              },
-            ]}
-          />
-          <View
-            style={[
-              styles.pulseRing,
-              styles.pulseRing2,
-              {
-                borderColor: !isBridgeReady
-                  ? '#cccccc'
-                  : !avatarLoaded
-                  ? '#888888'
-                  : isConnecting || !realtimeService
-                  ? '#ff9800'
-                  : '#4CAF50',
-              },
-            ]}
-          />
-          <View
-            style={[
-              styles.pulseRing,
-              styles.pulseRing3,
-              {
-                borderColor: !isBridgeReady
-                  ? '#cccccc'
-                  : !avatarLoaded
-                  ? '#888888'
-                  : isConnecting || !realtimeService
-                  ? '#ff9800'
-                  : '#4CAF50',
-              },
-            ]}
-          />
-
           {/* Main microphone circle */}
-          <View
+          {/* <View
             style={[
               styles.microphoneCircle,
               {
@@ -637,11 +624,11 @@ const AvatarScreen: React.FC = () => {
               size={24}
               color="#ffffff"
             />
-          </View>
+          </View> */}
         </View>
 
         {/* Instruction text */}
-        <Text style={styles.talkInstructionText}>
+        {/* <Text style={styles.talkInstructionText}>
           {!isBridgeReady
             ? 'Initializing...'
             : !avatarLoaded
@@ -658,7 +645,7 @@ const AvatarScreen: React.FC = () => {
             : isConnecting || !realtimeService
             ? 'Please wait'
             : "I'm here to help you"}
-        </Text>
+        </Text> */}
       </View>
     </View>
   );
@@ -674,15 +661,32 @@ const styles = StyleSheet.create({
     height: height,
     backgroundColor: '#0a0a1a',
   },
-  statusContainer: {
+  topRow: {
     position: 'absolute',
-    top: 50,
-    right: 20,
+    top: 40,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    zIndex: 20,
+    paddingHorizontal: 24,
+    width: '100%',
+  },
+  topBarFlex: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  statusContainer: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.8)',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingHorizontal: 18,
+    paddingVertical: 8,
     borderRadius: 24,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
@@ -694,6 +698,9 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.25,
     shadowRadius: 4,
+    minWidth: 140,
+    justifyContent: 'center',
+    marginHorizontal: 16,
   },
   statusIndicator: {
     width: 10,
@@ -947,16 +954,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '500',
   },
-  topRow: {
-    position: 'absolute',
-    top: 40,
-    right: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    zIndex: 20,
-  },
   settingsIcon: {
-    marginLeft: 16,
     backgroundColor: 'rgba(0, 0, 0, 0.6)',
     padding: 12,
     borderRadius: 20,
@@ -972,10 +970,6 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   audioToggle: {
-    position: 'absolute',
-    top: 40,
-    left: 20,
-    zIndex: 30,
     backgroundColor: 'rgba(0, 0, 0, 0.6)',
     padding: 12,
     borderRadius: 20,
@@ -990,54 +984,65 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
   },
-  startCallButton: {
+  bottomLeftButtonContainer: {
+    position: 'absolute',
+    left: 30,
+    right: 0,
+    bottom: 32,
+    zIndex: 20,
+    flexDirection: 'row',
+    // justifyContent: 'center',
+    // alignItems: 'center',
+  },
+  bottomLeftIconButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: '#4CAF50',
-    paddingHorizontal: 32,
-    paddingVertical: 16,
-    borderRadius: 28,
-    minWidth: 200,
+    justifyContent: 'center',
     alignItems: 'center',
     elevation: 8,
     shadowColor: '#4CAF50',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
+    shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.3,
     shadowRadius: 8,
+    marginRight: 10,
   },
-  endCallButton: {
-    backgroundColor: '#f44336',
-    paddingHorizontal: 32,
-    paddingVertical: 16,
-    borderRadius: 28,
-    minWidth: 200,
+  bottomLeftButtonTextContainer: {
+    backgroundColor: '#4CAF50',
+    borderRadius: 20,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    justifyContent: 'center',
     alignItems: 'center',
     elevation: 8,
-    shadowColor: '#f44336',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
+    shadowColor: '#4CAF50',
+    shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.3,
     shadowRadius: 8,
   },
-  buttonContent: {
+  bottomLeftButtonText: {
+    color: '#4CAF50',
+    fontSize: 18,
+    fontWeight: '700',
+    marginLeft: 10,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
+    backgroundColor: 'transparent',
+    borderRadius: 0,
+    elevation: 0,
+    shadowColor: 'transparent',
+  },
+  endButton: {
+    backgroundColor: '#f44336',
+    shadowColor: '#f44336',
+  },
+  endButtonText: {
+    color: '#f44336',
+  },
+  bottomLeftButtonRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-  },
-  startCallButtonText: {
-    color: '#ffffff',
-    fontSize: 18,
-    fontWeight: '700',
-    marginLeft: 8,
-  },
-  endCallButtonText: {
-    color: '#ffffff',
-    fontSize: 18,
-    fontWeight: '700',
-    marginLeft: 8,
   },
 });
 
