@@ -1,4 +1,4 @@
-import React, {useRef, useEffect} from 'react';
+import React, {useRef, useEffect, useState} from 'react';
 import {useFrame} from '@react-three/fiber/native';
 import {useGLTF, useAnimations} from '@react-three/drei/native';
 import {Group, Mesh, MeshStandardMaterial} from 'three';
@@ -15,120 +15,129 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
   isMuted,
 }) => {
   const group = useRef<Group>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   // Load the local humanoid robot GLB file using require for React Native
-  const gltf = useGLTF(require('../../assets/cute_robot.glb'));
-  const {scene, animations} = Array.isArray(gltf) ? gltf[0] : gltf;
-  const {actions} = useAnimations(animations, group);
+  let gltf: any;
+  let scene: any = null;
+  let animations: any[] = [];
+  let actions: any = {};
 
-  // Debug logging for model structure
-  useEffect(() => {
-    console.log('=== GLTF MODEL DEBUG INFO ===');
+  // Wrap the entire GLTF loading in a try-catch
+  try {
+    console.log('Starting GLTF load...');
+    gltf = useGLTF(require('../../assets/rob-fi.glb'));
+    console.log('GLTF loaded successfully:', gltf);
 
-    // Log scene hierarchy with materials
-    console.log('=== SCENE HIERARCHY & MATERIALS ===');
-    scene.traverse(child => {
-      console.log(
-        `Object: ${child.name || 'unnamed'}, Type: ${child.type}, Visible: ${
-          child.visible
-        }`,
-      );
-      if (child instanceof Mesh) {
-        console.log(`  - Mesh geometry:`, child.geometry);
-        console.log(`  - Mesh material:`, child.material);
+    // Safely extract scene and animations with fallbacks
+    const gltfData = Array.isArray(gltf) ? gltf[0] : gltf;
+    console.log('GLTF data extracted:', gltfData);
 
-        // Check material properties
-        if (child.material) {
-          const material = Array.isArray(child.material)
-            ? child.material[0]
-            : child.material;
-          console.log(`  - Material type: ${material.type}`);
-          console.log(`  - Material color:`, material.color);
-          console.log(`  - Material map:`, material.map);
-          console.log(`  - Material transparent:`, material.transparent);
-          console.log(`  - Material opacity:`, material.opacity);
-          console.log(`  - Material visible:`, material.visible);
-        }
+    // Add more defensive checks
+    if (!gltfData) {
+      console.warn('No GLTF data found');
+      scene = null;
+      animations = [];
+    } else {
+      scene = gltfData.scene || null;
+      console.log('Scene extracted:', scene);
+
+      // Safely handle animations array
+      if (gltfData.animations && Array.isArray(gltfData.animations)) {
+        console.log('Processing animations array...');
+        animations = gltfData.animations.filter((anim: any) => {
+          try {
+            return anim && typeof anim === 'object';
+          } catch (error) {
+            console.warn('Invalid animation object:', anim);
+            return false;
+          }
+        });
+        console.log('Animations processed:', animations.length);
+      } else {
+        animations = [];
       }
-    });
+    }
 
-    // Only fix incompatible MeshPhysicalMaterial while preserving textures
-    console.log('=== FIXING MATERIAL COMPATIBILITY ===');
-    // scene.traverse(child => {
-    //   if (child instanceof Mesh && child.material) {
-    //     const material = Array.isArray(child.material)
-    //       ? child.material[0]
-    //       : child.material;
+    // Initialize animations with useAnimations hook
+    if (animations.length > 0) {
+      console.log('Initializing useAnimations...');
+      actions = useAnimations(animations, group);
+      console.log('useAnimations initialized:', actions);
+    } else {
+      actions = {};
+    }
 
-    //     // Only convert MeshPhysicalMaterial (which doesn't work well on mobile)
-    //     child.material = new MeshStandardMaterial({
-    //       color: material.color,
-    //       emissive: material.emissive || 0x333333, // Ensure visibility
-    //       transparent: material.transparent,
-    //       opacity: material.opacity,
-    //       side: material.side,
-    //     });
-    //   }
-    // });
-
-    console.log('=== END DEBUG INFO ===');
-  }, [gltf, scene, animations, actions]);
+    if (!isLoaded && scene) {
+      setIsLoaded(true);
+    }
+  } catch (error) {
+    console.error('Error loading GLTF:', error);
+    setLoadError(error instanceof Error ? error.message : 'Unknown error');
+  }
 
   // Animation effects
   useEffect(() => {
-    if (!actions) return;
+    if (!actions || !actions.actions) return;
 
-    // Get available animation names
-    const animationNames = Object.keys(actions);
-    console.log('Available animations:', animationNames);
+    try {
+      console.log('Talkingggggggggggggggg:', isTalking);
 
-    // Play Bot_waving animation specifically
-    const wavingAnimation = actions['Take 001'];
-    if (wavingAnimation) {
-      console.log('Playing Bot_waving animation');
-      wavingAnimation.reset().fadeIn(0.5).play();
-      return;
-    }
+      const actualActions = actions.actions;
+      if (!actualActions || typeof actualActions !== 'object') return;
 
-    // Fallback to other animations if Bot_waving not found
-    if (isTalking && actions) {
-      // Try to find talking-related animations
-      const talkingAnimation =
-        actions['talking'] ||
-        actions['speak'] ||
-        actions['idle'] ||
-        actions['Idle'] ||
-        actions[animationNames[0]]; // Fallback to first available animation
+      const actualAnimationNames = Object.keys(actualActions);
+      console.log('Available animation names:', actualAnimationNames);
 
-      if (talkingAnimation) {
-        talkingAnimation.reset().fadeIn(0.5).play();
+      // Play animations when GPT is speaking
+      if (isTalking && actualAnimationNames.length > 0) {
+        console.log('GPT is speaking - playing animations');
+
+        // Play all available animations
+        actualAnimationNames.forEach((animationName, index) => {
+          const animation = actualActions[animationName];
+          if (animation && typeof animation.play === 'function') {
+            setTimeout(() => {
+              try {
+                animation.reset().fadeIn(0.5).play();
+                console.log(`Playing: ${animationName}`);
+              } catch (error) {
+                console.error(`Error playing ${animationName}:`, error);
+              }
+            }, index * 100); // 100ms delay between each animation
+          }
+        });
+      } else if (!isTalking && actualAnimationNames.length > 0) {
+        // Stop all animations when GPT stops speaking
+        console.log('GPT stopped speaking - stopping animations');
+        actualAnimationNames.forEach(animationName => {
+          const animation = actualActions[animationName];
+          if (animation && typeof animation.fadeOut === 'function') {
+            try {
+              animation.fadeOut(0.5);
+            } catch (error) {
+              console.error(`Error stopping ${animationName}:`, error);
+            }
+          }
+        });
       }
-    } else if (isListening && actions) {
-      // Try to find listening-related animations
-      const listeningAnimation =
-        actions['listening'] ||
-        actions['idle'] ||
-        actions['Idle'] ||
-        actions[animationNames[0]]; // Fallback to first available animation
-
-      if (listeningAnimation) {
-        listeningAnimation.reset().fadeIn(0.5).play();
-      }
-    } else if (actions && animationNames.length > 0) {
-      // Default idle animation
-      const idleAnimation =
-        actions['idle'] || actions['Idle'] || actions[animationNames[0]]; // Fallback to first available animation
-
-      if (idleAnimation) {
-        idleAnimation.reset().fadeIn(0.5).play();
-      }
+    } catch (error) {
+      console.error('Error in animation effect:', error);
     }
 
     return () => {
-      // Cleanup animations
-      if (actions) {
-        Object.values(actions).forEach(action => {
-          if (action) action.fadeOut(0.5);
+      // Cleanup animations on unmount
+      if (actions && actions.actions) {
+        const actualActions = actions.actions;
+        Object.values(actualActions).forEach((action: any) => {
+          if (action && typeof action.fadeOut === 'function') {
+            try {
+              action.fadeOut(0.5);
+            } catch (error) {
+              console.error('Error in cleanup:', error);
+            }
+          }
         });
       }
     };
@@ -150,8 +159,30 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
     }
   });
 
+  // Don't render if there's an error or not loaded
+  if (loadError) {
+    console.error('Avatar3D load error:', loadError);
+    return null;
+  }
+
+  if (!isLoaded || !scene) {
+    console.log('Not loaded or no scene, returning null');
+    return null;
+  }
+
+  // Final safety check
+  try {
+    if (!scene || typeof scene !== 'object') {
+      console.warn('Invalid scene object');
+      return null;
+    }
+  } catch (error) {
+    console.error('Error in final scene check:', error);
+    return null;
+  }
+
   return (
-    <group position={[0, -0.25, 0]}>
+    <group position={[0, -1, 0]}>
       {/* Lighting for the avatar */}
       <ambientLight intensity={0.6} />
       <directionalLight
@@ -165,7 +196,7 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
       <pointLight position={[5, -5, 5]} intensity={0.4} color="#4ecdc4" />
 
       {/* Humanoid Robot Avatar */}
-      <group ref={group} scale={1} position={[0, 0, 0]}>
+      <group ref={group} scale={0.15} position={[0, 0, 0]}>
         <primitive object={scene} />
       </group>
 
@@ -215,6 +246,6 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
 };
 
 // Preload the GLB file for better performance
-useGLTF.preload(require('../../assets/cute_robot.glb'));
+useGLTF.preload(require('../../assets/rob-fi.glb'));
 
 export default Avatar3D;

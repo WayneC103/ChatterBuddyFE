@@ -16,6 +16,7 @@ export interface RealtimeCallbacks {
   onConnectionStateChange?: (state: string) => void;
   onAudioReceived?: (audioData: ArrayBuffer) => void;
   onTranscriptReceived?: (transcript: string) => void;
+  onBotSpeaking?: (isSpeaking: boolean) => void;
   onError?: (error: string) => void;
   onSessionStart?: () => void;
   onSessionEnd?: () => void;
@@ -87,10 +88,18 @@ export class OpenAIRealtimeService {
 
           // Handle different event types
           if (data.type === 'response.audio_transcript.delta') {
-            this.callbacks.onTranscriptReceived?.(data.delta || '');
+            const delta = data.delta;
+            if (delta && typeof delta === 'string') {
+              this.callbacks.onTranscriptReceived?.(delta);
+            }
           } else if (data.type === 'response.audio.delta') {
             // Handle audio data if needed
             this.callbacks.onAudioReceived?.(data.delta);
+            // Bot is speaking when we receive audio data
+            this.callbacks.onBotSpeaking?.(true);
+          } else if (data.type === 'response.audio.end') {
+            // Bot stopped speaking
+            this.callbacks.onBotSpeaking?.(false);
           }
         } catch (error) {
           console.log('Non-JSON message received:', event.data);
@@ -171,7 +180,7 @@ export class OpenAIRealtimeService {
 
       console.log(
         'Making request to:',
-        'https://4489-103-151-43-82.ngrok-free.app/api/openai/ephemeral-key',
+        'https://043f-103-151-43-82.ngrok-free.app/api/openai/ephemeral-key',
       );
       console.log('Request body:', JSON.stringify(requestBody, null, 2));
       console.log('Request headers:', {
@@ -180,7 +189,7 @@ export class OpenAIRealtimeService {
       });
 
       const response = await axios.post(
-        'https://4489-103-151-43-82.ngrok-free.app/api/openai/ephemeral-key',
+        'https://043f-103-151-43-82.ngrok-free.app/api/openai/ephemeral-key',
         requestBody,
         {
           headers: {

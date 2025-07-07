@@ -28,8 +28,56 @@ const AvatarScreen: React.FC = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [connectionState, setConnectionState] = useState('disconnected');
   const [transcript, setTranscript] = useState('');
+  const [isBotSpeaking, setIsBotSpeaking] = useState(false);
   const [realtimeService, setRealtimeService] =
     useState<OpenAIRealtimeService | null>(null);
+
+  // Filter out unwanted logs
+  useEffect(() => {
+    const originalLog = console.log;
+    const originalWarn = console.warn;
+    const originalError = console.error;
+
+    const shouldFilter = (message: string) => {
+      const filters = [
+        'EXGL:',
+        'gl.pixelStorei',
+        'gl.getParameter',
+        'WebGL',
+        'THREE.WebGLRenderer',
+        'THREE.WebGLProgram',
+        'THREE.WebGLShader',
+      ];
+      return filters.some(filter => message.includes(filter));
+    };
+
+    console.log = (...args) => {
+      const message = args.join(' ');
+      if (!shouldFilter(message)) {
+        originalLog.apply(console, args);
+      }
+    };
+
+    console.warn = (...args) => {
+      const message = args.join(' ');
+      if (!shouldFilter(message)) {
+        originalWarn.apply(console, args);
+      }
+    };
+
+    console.error = (...args) => {
+      const message = args.join(' ');
+      if (!shouldFilter(message)) {
+        originalError.apply(console, args);
+      }
+    };
+
+    return () => {
+      console.log = originalLog;
+      console.warn = originalWarn;
+      console.error = originalError;
+    };
+  }, []);
 
   // Request microphone permissions
   const requestMicrophonePermission = async (): Promise<boolean> => {
@@ -70,7 +118,13 @@ const AvatarScreen: React.FC = () => {
     },
     onTranscriptReceived: (text: string) => {
       console.log('Transcript received:', text);
-      setTranscript(prev => prev + text);
+      if (text && typeof text === 'string') {
+        setTranscript(prev => prev + text);
+      }
+    },
+    onBotSpeaking: (isSpeaking: boolean) => {
+      console.log('Bot speaking state:', isSpeaking);
+      setIsBotSpeaking(isSpeaking);
     },
     onError: (error: string) => {
       console.error('Realtime service error:', error);
@@ -88,6 +142,7 @@ const AvatarScreen: React.FC = () => {
       setIsCallActive(false);
       setIsConnecting(false);
       setTranscript('');
+      setIsBotSpeaking(false);
     },
   };
 
@@ -218,7 +273,11 @@ const AvatarScreen: React.FC = () => {
               `}
             />
           </mesh>
-          <Avatar3D isListening={false} isTalking={false} isMuted={false} />
+          <Avatar3D
+            isListening={false}
+            isTalking={isBotSpeaking}
+            isMuted={false}
+          />
         </Suspense>
       </Canvas>
 
