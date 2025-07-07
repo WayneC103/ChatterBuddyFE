@@ -19,70 +19,103 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
   const [loadError, setLoadError] = useState<string | null>(null);
 
   // Load the local humanoid robot GLB file using require for React Native
-  let gltf: any;
-  let scene: any = null;
-  let animations: any[] = [];
-  let actions: any = {};
+  const gltf = useGLTF(require('../../assets/rob-fi.glb'));
 
-  // Wrap the entire GLTF loading in a try-catch
-  try {
-    console.log('Starting GLTF load...');
-    gltf = useGLTF(require('../../assets/rob-fi.glb'));
-    console.log('GLTF loaded successfully:', gltf);
+  // Extract animations safely
+  const gltfData = Array.isArray(gltf) ? gltf[0] : gltf;
+  const animations = gltfData?.animations || [];
+  const actions = useAnimations(animations, group);
+  const scene = gltfData?.scene || null;
 
-    // Safely extract scene and animations with fallbacks
-    const gltfData = Array.isArray(gltf) ? gltf[0] : gltf;
-    console.log('GLTF data extracted:', gltfData);
-
-    // Add more defensive checks
-    if (!gltfData) {
-      console.warn('No GLTF data found');
-      scene = null;
-      animations = [];
-    } else {
-      scene = gltfData.scene || null;
-      console.log('Scene extracted:', scene);
-
-      // Safely handle animations array
-      if (gltfData.animations && Array.isArray(gltfData.animations)) {
-        console.log('Processing animations array...');
-        animations = gltfData.animations.filter((anim: any) => {
-          try {
-            return anim && typeof anim === 'object';
-          } catch (error) {
-            console.warn('Invalid animation object:', anim);
-            return false;
-          }
-        });
-        console.log('Animations processed:', animations.length);
-      } else {
-        animations = [];
-      }
-    }
-
-    // Initialize animations with useAnimations hook
-    if (animations.length > 0) {
-      console.log('Initializing useAnimations...');
-      actions = useAnimations(animations, group);
-      console.log('useAnimations initialized:', actions);
-    } else {
-      actions = {};
-    }
-
-    if (!isLoaded && scene) {
-      setIsLoaded(true);
-    }
-  } catch (error) {
-    console.error('Error loading GLTF:', error);
-    setLoadError(error instanceof Error ? error.message : 'Unknown error');
-  }
-
-  // Animation effects
+  // One-time loading effect
   useEffect(() => {
-    if (!actions || !actions.actions) return;
+    console.log('Starting GLTF load...');
 
     try {
-      console.log('Talkingggggggggggggggg:', isTalking);
+      console.log('GLTF data extracted:', gltfData);
+
+      if (!gltfData) {
+        console.warn('No GLTF data found');
+        setLoadError('No GLTF data found');
+        return;
+      }
+
+      console.log('Scene extracted:', scene);
+
+      if (!scene) {
+        setLoadError('No scene found in GLTF');
+        return;
+      }
+
+      // Safely handle animations array
+      const validAnimations = animations.filter((anim: any) => {
+        try {
+          return anim && typeof anim === 'object';
+        } catch (error) {
+          console.warn('Invalid animation object:', anim);
+          return false;
+        }
+      });
+
+      console.log('Animations processed:', validAnimations.length);
+
+      // Set up animations once - they stay loaded
+      if (actions && actions.actions) {
+        const actualActions = actions.actions;
+        Object.keys(actualActions).forEach(animationName => {
+          const animation = actualActions[animationName];
+          if (animation) {
+            // Set up animation properties once
+            animation.clampWhenFinished = false;
+            console.log(`Setup animation: ${animationName}`);
+          }
+        });
+      }
+
+      setIsLoaded(true);
+      console.log('GLTF loaded successfully');
+    } catch (error) {
+      console.error('Error loading GLTF:', error);
+      setLoadError(error instanceof Error ? error.message : 'Unknown error');
+    }
+  }, []); // Empty dependency array - runs only once
+
+  // Start all animations once when loaded
+  useEffect(() => {
+    if (!actions || !actions.actions || !isLoaded) return;
+
+    try {
+      const actualActions = actions.actions;
+      if (!actualActions || typeof actualActions !== 'object') return;
+
+      const actualAnimationNames = Object.keys(actualActions);
+      console.log('Starting all animations:', actualAnimationNames);
+
+      // Start all animations initially
+      actualAnimationNames.forEach((animationName, index) => {
+        const animation = actualActions[animationName];
+        if (animation && typeof animation.play === 'function') {
+          setTimeout(() => {
+            try {
+              animation.play();
+              console.log(`Started: ${animationName}`);
+            } catch (error) {
+              console.error(`Error starting ${animationName}:`, error);
+            }
+          }, index * 100);
+        }
+      });
+    } catch (error) {
+      console.error('Error starting animations:', error);
+    }
+  }, [isLoaded, actions]); // Only run when loaded
+
+  // Pause/Resume animations based on talking state
+  useEffect(() => {
+    if (!actions || !actions.actions || !isLoaded) return;
+
+    try {
+      console.log('Talking state changed:', isTalking);
 
       const actualActions = actions.actions;
       if (!actualActions || typeof actualActions !== 'object') return;
@@ -90,58 +123,29 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
       const actualAnimationNames = Object.keys(actualActions);
       console.log('Available animation names:', actualAnimationNames);
 
-      // Play animations when GPT is speaking
-      if (isTalking && actualAnimationNames.length > 0) {
-        console.log('GPT is speaking - playing animations');
-
-        // Play all available animations
-        actualAnimationNames.forEach((animationName, index) => {
-          const animation = actualActions[animationName];
-          if (animation && typeof animation.play === 'function') {
-            setTimeout(() => {
-              try {
-                animation.reset().fadeIn(0.5).play();
-                console.log(`Playing: ${animationName}`);
-              } catch (error) {
-                console.error(`Error playing ${animationName}:`, error);
-              }
-            }, index * 100); // 100ms delay between each animation
-          }
-        });
-      } else if (!isTalking && actualAnimationNames.length > 0) {
-        // Stop all animations when GPT stops speaking
-        console.log('GPT stopped speaking - stopping animations');
-        actualAnimationNames.forEach(animationName => {
-          const animation = actualActions[animationName];
-          if (animation && typeof animation.fadeOut === 'function') {
-            try {
-              animation.fadeOut(0.5);
-            } catch (error) {
-              console.error(`Error stopping ${animationName}:`, error);
+      // Pause/Resume based on talking state
+      actualAnimationNames.forEach(animationName => {
+        const animation = actualActions[animationName];
+        if (animation) {
+          if (isTalking) {
+            // Resume animation when talking
+            if (animation.paused) {
+              animation.paused = false;
+              console.log(`Resumed: ${animationName}`);
+            }
+          } else {
+            // Pause animation when not talking
+            if (!animation.paused) {
+              animation.paused = true;
+              console.log(`Paused: ${animationName}`);
             }
           }
-        });
-      }
+        }
+      });
     } catch (error) {
-      console.error('Error in animation effect:', error);
+      console.error('Error in pause/resume effect:', error);
     }
-
-    return () => {
-      // Cleanup animations on unmount
-      if (actions && actions.actions) {
-        const actualActions = actions.actions;
-        Object.values(actualActions).forEach((action: any) => {
-          if (action && typeof action.fadeOut === 'function') {
-            try {
-              action.fadeOut(0.5);
-            } catch (error) {
-              console.error('Error in cleanup:', error);
-            }
-          }
-        });
-      }
-    };
-  }, [isTalking, isListening, actions]);
+  }, [isTalking, isLoaded, actions]); // Only run when talking state changes
 
   // Animate the avatar with subtle movements
   useFrame(state => {

@@ -92,13 +92,19 @@ export class OpenAIRealtimeService {
             if (delta && typeof delta === 'string') {
               this.callbacks.onTranscriptReceived?.(delta);
             }
+          } else if (data.type === 'output_audio_buffer.started') {
+            // Bot started speaking
+            console.log('Bot started speaking');
+            this.callbacks.onBotSpeaking?.(true);
+          } else if (data.type === 'output_audio_buffer.stopped') {
+            // Bot stopped speaking
+            console.log('Bot stopped speaking');
+            this.callbacks.onBotSpeaking?.(false);
           } else if (data.type === 'response.audio.delta') {
             // Handle audio data if needed
             this.callbacks.onAudioReceived?.(data.delta);
-            // Bot is speaking when we receive audio data
-            this.callbacks.onBotSpeaking?.(true);
           } else if (data.type === 'response.audio.end') {
-            // Bot stopped speaking
+            // Bot stopped speaking (alternative event)
             this.callbacks.onBotSpeaking?.(false);
           }
         } catch (error) {
