@@ -134,10 +134,12 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
               console.log(`Resumed: ${animationName}`);
             }
           } else {
-            // Pause animation when not talking
+            // Pause animation when not talking and reset to initial state
             if (!animation.paused) {
+              // Reset animation to initial state before pausing
+              animation.reset();
               animation.paused = true;
-              console.log(`Paused: ${animationName}`);
+              console.log(`Paused and reset: ${animationName}`);
             }
           }
         }

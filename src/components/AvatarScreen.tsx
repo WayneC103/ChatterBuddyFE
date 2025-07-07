@@ -300,13 +300,13 @@ const AvatarScreen: React.FC = () => {
       )}
 
       {/* Transcript Display */}
-      {transcript.length > 0 && (
+      {/* {transcript.length > 0 && (
         <View style={styles.transcriptContainer}>
           <Text style={styles.transcriptText} numberOfLines={3}>
             {transcript}
           </Text>
         </View>
-      )}
+      )} */}
 
       {/* Call Control Button */}
       <View style={styles.buttonContainer}>
