@@ -1,7 +1,7 @@
-import React, {useRef, useEffect, useState, useCallback} from 'react';
+import React, {useRef, useEffect, useState} from 'react';
 import {useFrame} from '@react-three/fiber/native';
 import {useGLTF, useAnimations} from '@react-three/drei/native';
-import {Group, Mesh, MeshStandardMaterial} from 'three';
+import {Group} from 'three';
 
 interface Avatar3DProps {
   isListening: boolean;
@@ -18,24 +18,9 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
 }) => {
   const group = useRef<Group>(null);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const [shouldLoad, setShouldLoad] = useState(false);
-  const maxRetries = 3;
 
-  // Wait for bridge to be ready before loading
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      console.log('Bridge should be ready, starting GLTF load...');
-      setShouldLoad(true);
-    }, 1500); // Give extra time for bridge initialization
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Load the GLB file using useGLTF with proper error handling
-  const gltf = shouldLoad ? useGLTF(require('../../assets/rob-fi.glb')) : null;
+  // Load the GLB file using useGLTF - this should be called directly as a hook
+  const gltf = useGLTF(require('../../assets/rob-fi.glb'));
 
   // Extract animations safely
   const gltfData = gltf ? (Array.isArray(gltf) ? gltf[0] : gltf) : null;
@@ -43,121 +28,14 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
   const actions = useAnimations(animations, group);
   const scene = gltfData?.scene || null;
 
-  // Notify parent component of load state changes
+  // Notify parent component when loaded
   useEffect(() => {
-    onLoadStateChange?.(isLoaded, loadError || undefined);
-  }, [isLoaded, loadError, onLoadStateChange]);
-
-  // Retry loading function
-  const retryLoading = useCallback(() => {
-    if (retryCount < maxRetries) {
-      console.log(
-        `Retrying model load (attempt ${retryCount + 1}/${maxRetries})`,
-      );
-      setRetryCount(prev => prev + 1);
-      setLoadError(null);
-      setIsLoading(true);
-      setIsLoaded(false);
-      setShouldLoad(false);
-
-      // Force a re-render by updating state
-      setTimeout(() => {
-        setShouldLoad(true);
-      }, 100);
+    if (gltfData && scene && !isLoaded) {
+      setIsLoaded(true);
+      onLoadStateChange?.(true);
+      console.log('GLTF loaded and ready');
     }
-  }, [retryCount]);
-
-  // Enhanced loading effect with better error handling
-  useEffect(() => {
-    if (!shouldLoad) return;
-
-    console.log('Starting GLTF processing...', {
-      retryCount,
-      isLoading,
-      hasGltf: !!gltfData,
-    });
-
-    // Reset states on retry
-    if (retryCount > 0) {
-      setLoadError(null);
-      setIsLoading(true);
-    }
-
-    const processModel = async () => {
-      try {
-        // Wait for GLTF to be available
-        if (!gltfData) {
-          console.log('Waiting for GLTF data...');
-          return;
-        }
-
-        console.log('GLTF data extracted:', gltfData);
-
-        if (!gltfData) {
-          throw new Error('No GLTF data found');
-        }
-
-        console.log('Scene extracted:', scene);
-
-        if (!scene) {
-          throw new Error('No scene found in GLTF');
-        }
-
-        // Validate scene structure
-        if (!scene.children || scene.children.length === 0) {
-          throw new Error('Scene has no children');
-        }
-
-        // Safely handle animations array
-        const validAnimations = animations.filter((anim: any) => {
-          try {
-            return anim && typeof anim === 'object' && anim.name;
-          } catch (error) {
-            console.warn('Invalid animation object:', anim);
-            return false;
-          }
-        });
-
-        console.log('Animations processed:', validAnimations.length);
-
-        // Set up animations once - they stay loaded
-        if (actions && actions.actions) {
-          const actualActions = actions.actions;
-          Object.keys(actualActions).forEach(animationName => {
-            const animation = actualActions[animationName];
-            if (animation) {
-              // Set up animation properties once
-              animation.clampWhenFinished = false;
-              console.log(`Setup animation: ${animationName}`);
-            }
-          });
-        }
-
-        setIsLoaded(true);
-        setLoadError(null);
-        setIsLoading(false);
-        console.log('GLTF processed successfully');
-      } catch (error) {
-        console.error('Error processing GLTF:', error);
-        const errorMessage =
-          error instanceof Error ? error.message : 'Unknown error';
-        setLoadError(errorMessage);
-        setIsLoading(false);
-
-        // Auto-retry on error if we haven't exceeded max retries
-        if (retryCount < maxRetries) {
-          console.log(
-            `Auto-retrying in 2 seconds... (${retryCount + 1}/${maxRetries})`,
-          );
-          setTimeout(() => {
-            retryLoading();
-          }, 2000);
-        }
-      }
-    };
-
-    processModel();
-  }, [gltfData, scene, animations, actions, retryCount, shouldLoad]); // Include shouldLoad in dependencies
+  }, [gltfData, scene, isLoaded, onLoadStateChange]);
 
   // Start all animations once when loaded
   useEffect(() => {
@@ -170,7 +48,7 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
       const actualAnimationNames = Object.keys(actualActions);
       console.log('Starting all animations:', actualAnimationNames);
 
-      // Start all animations initially with staggered timing
+      // Start all animations initially
       actualAnimationNames.forEach((animationName, index) => {
         const animation = actualActions[animationName];
         if (animation && typeof animation.play === 'function') {
@@ -181,7 +59,7 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
             } catch (error) {
               console.error(`Error starting ${animationName}:`, error);
             }
-          }, index * 200); // Increased delay for better stability
+          }, index * 100);
         }
       });
     } catch (error) {
@@ -244,24 +122,9 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
     }
   });
 
-  // Show loading state or error - return null to let parent handle UI
-  if (isLoading || !shouldLoad || loadError) {
-    return null;
-  }
-
-  if (!isLoaded || !scene) {
-    console.log('Not loaded or no scene, returning null');
-    return null;
-  }
-
-  // Final safety check
-  try {
-    if (!scene || typeof scene !== 'object') {
-      console.warn('Invalid scene object');
-      return null;
-    }
-  } catch (error) {
-    console.error('Error in final scene check:', error);
+  // Simple safety check
+  if (!scene) {
+    console.log('No scene available, returning null');
     return null;
   }
 
@@ -329,7 +192,7 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
   );
 };
 
-// Preload the GLB file for better performance
+// Preload the GLB file for better performance (module level as per docs)
 useGLTF.preload(require('../../assets/rob-fi.glb'));
 
 export default Avatar3D;

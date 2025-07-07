@@ -24,6 +24,15 @@ import {
 
 const {width, height} = Dimensions.get('window');
 
+// Simple Loader component as shown in the R3F documentation
+const Loader: React.FC = () => {
+  return (
+    <View style={styles.loaderContainer}>
+      <Text style={styles.loaderText}>Loading 3D Model...</Text>
+    </View>
+  );
+};
+
 const AvatarScreen: React.FC = () => {
   const [isCallActive, setIsCallActive] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
@@ -313,7 +322,7 @@ const AvatarScreen: React.FC = () => {
               antialias: true,
               alpha: false,
             }}>
-            <Suspense fallback={null}>
+            <Suspense fallback={<Loader />}>
               {/* Gradient Background */}
               <mesh position={[0, 0, -10]} scale={[20, 20, 1]}>
                 <planeGeometry args={[1, 1]} />
@@ -769,6 +778,17 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#d4d4d4',
+  },
+  loaderText: {
+    color: '#666666',
+    fontSize: 18,
+    fontWeight: '500',
   },
 });
 
