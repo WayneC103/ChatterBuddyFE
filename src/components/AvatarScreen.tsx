@@ -21,8 +21,15 @@ import {
   RealtimeConfig,
   RealtimeCallbacks,
 } from '../services/OpenAIRealtimeService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {useNavigation} from '@react-navigation/native';
+import type {StackNavigationProp} from '@react-navigation/stack';
+import InCallManager from 'react-native-incall-manager';
 
 const {width, height} = Dimensions.get('window');
+const STORAGE_KEY = 'startTalkingOnOpen';
+
+type RootStackParamList = {Avatar: undefined; Settings: undefined};
 
 // Simple Loader component as shown in the R3F documentation
 const Loader: React.FC = () => {
@@ -44,10 +51,16 @@ const AvatarScreen: React.FC = () => {
   const [avatarLoaded, setAvatarLoaded] = useState(false);
   const [avatarError, setAvatarError] = useState<string | undefined>();
   const [isBridgeReady, setIsBridgeReady] = useState(false);
+  const [isSpeaker, setIsSpeaker] = useState(Platform.OS === 'android');
+  const [hasEndedCall, setHasEndedCall] = useState(false);
 
   // Animation values for loading indicator
   const spinValue = useRef(new Animated.Value(0)).current;
   const pulseValue = useRef(new Animated.Value(1)).current;
+
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const [startTalkingOnOpen, setStartTalkingOnOpen] = useState(true);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
 
   // Check if React Native bridge is ready
   useEffect(() => {
@@ -218,6 +231,7 @@ const AvatarScreen: React.FC = () => {
 
   // Start voice call
   const startCall = useCallback(async () => {
+    setHasEndedCall(false);
     try {
       setIsConnecting(true);
 
@@ -235,7 +249,7 @@ const AvatarScreen: React.FC = () => {
       // Configure the realtime service
       const config: RealtimeConfig = {
         model: 'gpt-4o-mini-realtime-preview-2024-12-17',
-        voice: 'alloy',
+        voice: 'echo',
         instructions:
           "You are ChatterBuddy, a warm and empathetic AI friend who talks like a real human. Show genuine emotions, use casual language, share personal reactions, and connect on a deep, friendly level. Be supportive, understanding, and make the user feel like they're talking to a close friend who truly cares about them. Use natural speech patterns, express feelings, and create meaningful conversations.",
       };
@@ -252,20 +266,33 @@ const AvatarScreen: React.FC = () => {
     }
   }, [realtimeCallbacks]);
 
+  // Load setting on mount
   useEffect(() => {
-    setTimeout(() => {
-      startCall();
-    }, 2000);
+    (async () => {
+      const value = await AsyncStorage.getItem(STORAGE_KEY);
+      if (value !== null) setStartTalkingOnOpen(value === 'true');
+      setSettingsLoaded(true);
+    })();
+  }, []);
 
+  // Only auto-start if setting is enabled
+  useEffect(() => {
+    if (!settingsLoaded) return;
+    if (startTalkingOnOpen) {
+      setTimeout(() => {
+        startCall();
+      }, 2000);
+    }
     return () => {
       if (realtimeService) {
         endCall();
       }
     };
-  }, []);
+  }, [settingsLoaded, startTalkingOnOpen]);
 
   // End voice call
   const endCall = useCallback(async () => {
+    setHasEndedCall(true);
     if (realtimeService) {
       try {
         await realtimeService.endCall();
@@ -305,9 +332,57 @@ const AvatarScreen: React.FC = () => {
 
   const buttonConfig = getButtonConfig();
 
+  // Handle audio route change
+  useEffect(() => {
+    if (Platform.OS === 'android') {
+      if (isSpeaker) {
+        InCallManager.setSpeakerphoneOn(true);
+      } else {
+        InCallManager.setSpeakerphoneOn(false);
+      }
+    }
+  }, [isSpeaker]);
+
   return (
     <View style={styles.container}>
       <StatusBar hidden />
+
+      {/* Audio Route Toggle (Android only) */}
+      {Platform.OS === 'android' && (
+        <TouchableOpacity
+          style={styles.audioToggle}
+          onPress={() => setIsSpeaker(s => !s)}>
+          <Text style={{fontSize: 28, color: '#fff'}}>
+            {isSpeaker ? '🔊' : '🎧'}
+          </Text>
+        </TouchableOpacity>
+      )}
+
+      {/* Settings and Connection Status Row */}
+      <View style={styles.topRow}>
+        {isCallActive && (
+          <View style={styles.statusContainer}>
+            <View
+              style={[
+                styles.statusIndicator,
+                {
+                  backgroundColor:
+                    connectionState === 'connected' ? '#4CAF50' : '#ff9800',
+                },
+              ]}
+            />
+            <Text style={styles.statusText}>
+              {connectionState === 'connected' ? 'Connected' : 'Connecting...'}
+            </Text>
+          </View>
+        )}
+        {/* Settings Icon */}
+        <TouchableOpacity
+          style={styles.settingsIcon}
+          onPress={() => navigation.navigate('Settings')}>
+          <Text style={{fontSize: 28, color: '#fff'}}>⚙️</Text>
+        </TouchableOpacity>
+      </View>
 
       {/* Full Screen 3D Avatar Canvas */}
       {isBridgeReady ? (
@@ -337,9 +412,17 @@ const AvatarScreen: React.FC = () => {
                   fragmentShader={`
                     varying vec2 vUv;
                     void main() {
-                      vec3 color1 = vec3(0.9, 0.9, 0.9); // Light gray
-                      vec3 color2 = vec3(0.6, 0.6, 0.6); // Darker gray
-                      vec3 color = mix(color1, color2, vUv.y);
+                      // Vertical gradient: black (top) to deep blue/gray (bottom)
+                      vec3 topColor = vec3(0.02, 0.02, 0.05); // almost black
+                      vec3 bottomColor = vec3(0.13, 0.18, 0.28); // deep blue/gray
+                      vec3 base = mix(topColor, bottomColor, vUv.y);
+
+                      // Radial spotlight effect (center bottom)
+                      float dist = distance(vUv, vec2(0.5, 0.15));
+                      float spotlight = 1.0 - smoothstep(0.18, 0.45, dist);
+                      vec3 spotColor = vec3(0.25, 0.32, 0.45); // bluish spotlight
+                      vec3 color = mix(base, spotColor, spotlight * 0.7);
+
                       gl_FragColor = vec4(color, 1.0);
                     }
                   `}
@@ -423,32 +506,53 @@ const AvatarScreen: React.FC = () => {
         </View>
       )}
 
-      {/* Connection Status Indicator */}
-      {isCallActive && (
-        <View style={styles.statusContainer}>
-          <View
-            style={[
-              styles.statusIndicator,
-              {
-                backgroundColor:
-                  connectionState === 'connected' ? '#4CAF50' : '#ff9800',
-              },
-            ]}
-          />
-          <Text style={styles.statusText}>
-            {connectionState === 'connected' ? 'Connected' : 'Connecting...'}
-          </Text>
+      {/* If startTalkingOnOpen is false, show button to start talking or end call */}
+      {settingsLoaded && (
+        <View
+          style={{
+            position: 'absolute',
+            bottom: 40,
+            left: 0,
+            right: 0,
+            alignItems: 'center',
+            zIndex: 10,
+          }}>
+          {!isCallActive &&
+            !isConnecting &&
+            (!startTalkingOnOpen || hasEndedCall) && (
+              <TouchableOpacity
+                style={{
+                  backgroundColor: '#4CAF50',
+                  paddingHorizontal: 32,
+                  paddingVertical: 16,
+                  borderRadius: 24,
+                  minWidth: 180,
+                  alignItems: 'center',
+                }}
+                onPress={startCall}>
+                <Text style={{color: '#fff', fontSize: 18, fontWeight: '700'}}>
+                  Start Talking
+                </Text>
+              </TouchableOpacity>
+            )}
+          {isCallActive && (
+            <TouchableOpacity
+              style={{
+                backgroundColor: '#f44336',
+                paddingHorizontal: 32,
+                paddingVertical: 16,
+                borderRadius: 24,
+                minWidth: 180,
+                alignItems: 'center',
+              }}
+              onPress={endCall}>
+              <Text style={{color: '#fff', fontSize: 18, fontWeight: '700'}}>
+                End Call
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       )}
-
-      {/* Transcript Display */}
-      {/* {transcript.length > 0 && (
-        <View style={styles.transcriptContainer}>
-          <Text style={styles.transcriptText} numberOfLines={3}>
-            {transcript}
-          </Text>
-        </View>
-      )} */}
 
       {/* Avatar Error Display */}
       {avatarError && (
@@ -567,12 +671,12 @@ const AvatarScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#d4d4d4',
+    backgroundColor: '#0a0a1a',
   },
   canvas: {
     width: width,
     height: height,
-    backgroundColor: '#d4d4d4',
+    backgroundColor: '#0a0a1a',
   },
   statusContainer: {
     position: 'absolute',
@@ -699,7 +803,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#d4d4d4',
+    backgroundColor: '#0a0a1a',
   },
   loadingText: {
     color: '#666666',
@@ -712,7 +816,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(212, 212, 212, 0.9)',
+    backgroundColor: 'rgba(10, 10, 26, 0.9)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -752,7 +856,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(212, 212, 212, 0.9)',
+    backgroundColor: 'rgba(10, 10, 26, 0.9)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -789,6 +893,23 @@ const styles = StyleSheet.create({
     color: '#666666',
     fontSize: 18,
     fontWeight: '500',
+  },
+  topRow: {
+    position: 'absolute',
+    top: 40,
+    right: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    zIndex: 20,
+  },
+  settingsIcon: {
+    marginLeft: 16,
+  },
+  audioToggle: {
+    position: 'absolute',
+    top: 40,
+    left: 20,
+    zIndex: 30,
   },
 });
 

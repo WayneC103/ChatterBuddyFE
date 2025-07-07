@@ -6,15 +6,23 @@
  */
 
 import React from 'react';
-import {StatusBar, StyleSheet, View} from 'react-native';
+import {StatusBar, StyleSheet} from 'react-native';
 import AvatarScreen from './src/components/AvatarScreen';
+import SettingsScreen from './src/components/SettingsScreen';
+import {NavigationContainer} from '@react-navigation/native';
+import {createStackNavigator} from '@react-navigation/stack';
+
+const Stack = createStackNavigator();
 
 function App(): React.JSX.Element {
   return (
-    <View style={styles.container}>
+    <NavigationContainer>
       <StatusBar hidden />
-      <AvatarScreen />
-    </View>
+      <Stack.Navigator screenOptions={{headerShown: false}}>
+        <Stack.Screen name="Avatar" component={AvatarScreen} />
+        <Stack.Screen name="Settings" component={SettingsScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
 
