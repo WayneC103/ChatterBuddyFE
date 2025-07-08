@@ -27,6 +27,22 @@ import {useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp} from '@react-navigation/stack';
 import InCallManager from 'react-native-incall-manager';
 
+// ✅ Hermes-compatible patch for WebGL getProgramInfoLog
+if (
+  (global as any).WebGLRenderingContext &&
+  typeof (global as any).WebGLRenderingContext.prototype.getProgramInfoLog ===
+    'function'
+) {
+  const original = (global as any).WebGLRenderingContext.prototype
+    .getProgramInfoLog;
+  (global as any).WebGLRenderingContext.prototype.getProgramInfoLog = function (
+    ...args: any[]
+  ) {
+    const result = original.apply(this, args);
+    return typeof result === 'string' ? result : '';
+  };
+}
+
 const {width, height} = Dimensions.get('window');
 const STORAGE_KEY = 'startTalkingOnOpen';
 
@@ -437,6 +453,9 @@ const AvatarScreen: React.FC = () => {
             gl={{
               antialias: true,
               alpha: false,
+            }}
+            onCreated={({gl, scene, camera, size, raycaster}) => {
+              (gl as any).debug = {checkShaderErrors: false};
             }}>
             <Suspense fallback={<Loader />}>
               {/* Gradient Background */}
