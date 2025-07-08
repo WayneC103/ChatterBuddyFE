@@ -10,6 +10,8 @@ export interface RealtimeConfig {
   model?: string;
   voice?: string;
   instructions?: string;
+  audioEndDelayStrategy?: 'smart' | 'fixed' | 'stream-monitoring';
+  audioEndDelayMs?: number; // for fixed delay strategy
 }
 
 export interface RealtimeCallbacks {
@@ -27,6 +29,12 @@ export class OpenAIRealtimeService {
   private dataChannel: any = null;
   private config: RealtimeConfig;
   private callbacks: RealtimeCallbacks;
+  private audioEndTimeout: NodeJS.Timeout | null = null;
+  private lastAudioChunkTime: number = 0;
+  private estimatedAudioDuration: number = 0;
+  private remoteAudioStream: MediaStream | null = null;
+  private isAudioActuallyPlaying: boolean = false;
+  private audioPlaybackCheckInterval: NodeJS.Timeout | null = null;
 
   constructor(config: RealtimeConfig, callbacks: RealtimeCallbacks = {}) {
     this.config = config;
@@ -52,10 +60,10 @@ export class OpenAIRealtimeService {
       // Set up to receive remote audio from the model (cast to any for TypeScript)
       (this.peerConnection as any).ontrack = (event: any) => {
         console.log('Received remote audio track');
-        // The audio will be played automatically through the device's audio system
+        // Store the remote audio stream for monitoring
         if (event.streams && event.streams[0]) {
-          // In React Native, audio playback is handled automatically
-          // You can add custom audio processing here if needed
+          this.remoteAudioStream = event.streams[0];
+          this.startAudioPlaybackMonitoring();
         }
       };
 
@@ -95,17 +103,34 @@ export class OpenAIRealtimeService {
             // Bot started speaking - immediately set to true
             console.log('Bot started speaking');
             this.callbacks.onBotSpeaking?.(true);
-          } else if (data.type === 'output_audio_buffer.stopped') {
-            // Bot stopped sending audio data
-            console.log('Bot stopped speaking');
-            this.callbacks.onBotSpeaking?.(false);
+            // Clear any pending audio end timeout
+            if (this.audioEndTimeout) {
+              clearTimeout(this.audioEndTimeout);
+              this.audioEndTimeout = null;
+            }
           } else if (data.type === 'response.audio.delta') {
-            // Handle audio data if needed
+            // Track audio chunks to estimate duration
+            this.lastAudioChunkTime = Date.now();
+            if (data.delta) {
+              // Estimate audio duration based on data size (rough approximation)
+              // Assuming 16kHz, 16-bit audio (2 bytes per sample)
+              const audioDataSize = data.delta.length || 1024; // fallback size
+              const estimatedMs = (audioDataSize / (16000 * 2)) * 1000;
+              this.estimatedAudioDuration = Math.max(estimatedMs, 500); // minimum 500ms buffer
+            }
             this.callbacks.onAudioReceived?.(data.delta);
+          } else if (data.type === 'output_audio_buffer.stopped') {
+            // Bot stopped sending audio data, but audio is still playing
+            console.log(
+              'Bot stopped sending audio, calculating playback delay...',
+            );
+            this.handleAudioEnd();
           } else if (data.type === 'response.audio.end') {
             // Alternative audio end event
-            console.log('Bot audio response ended');
-            this.callbacks.onBotSpeaking?.(false);
+            console.log(
+              'Bot audio response ended, calculating playback delay...',
+            );
+            this.handleAudioEnd();
           }
         } catch (error) {
           console.log('Non-JSON message received:', event.data);
@@ -153,8 +178,149 @@ export class OpenAIRealtimeService {
     }
   }
 
+  private startAudioPlaybackMonitoring(): void {
+    if (!this.remoteAudioStream) return;
+
+    // Monitor audio track state changes
+    const audioTracks = this.remoteAudioStream.getAudioTracks();
+    if (audioTracks.length > 0) {
+      const audioTrack = audioTracks[0];
+
+      // Use React Native WebRTC event handling (cast to any for RN-specific API)
+      const trackWithEvents = audioTrack as any;
+      if (trackWithEvents.onended !== undefined) {
+        trackWithEvents.onended = () => {
+          console.log('Audio track ended');
+          this.isAudioActuallyPlaying = false;
+        };
+      }
+
+      // Periodically check audio track state
+      this.audioPlaybackCheckInterval = setInterval(() => {
+        if (audioTrack.readyState === 'ended') {
+          this.isAudioActuallyPlaying = false;
+          if (this.audioPlaybackCheckInterval) {
+            clearInterval(this.audioPlaybackCheckInterval);
+            this.audioPlaybackCheckInterval = null;
+          }
+        }
+      }, 100);
+    }
+  }
+
+  private handleAudioEnd(): void {
+    // Clear any existing timeout
+    if (this.audioEndTimeout) {
+      clearTimeout(this.audioEndTimeout);
+    }
+
+    const strategy = this.config.audioEndDelayStrategy || 'smart';
+
+    switch (strategy) {
+      case 'fixed':
+        this.handleFixedDelay();
+        break;
+      case 'stream-monitoring':
+        this.handleStreamMonitoring();
+        break;
+      case 'smart':
+      default:
+        this.handleSmartDelay();
+        break;
+    }
+  }
+
+  private handleFixedDelay(): void {
+    const fixedDelay = this.config.audioEndDelayMs || 1000; // Default 1 second
+    console.log(`Using fixed delay strategy: ${fixedDelay}ms`);
+
+    this.audioEndTimeout = setTimeout(() => {
+      console.log('Fixed delay elapsed, stopping animation');
+      this.callbacks.onBotSpeaking?.(false);
+      this.audioEndTimeout = null;
+    }, fixedDelay);
+  }
+
+  private handleStreamMonitoring(): void {
+    console.log('Using stream monitoring strategy');
+    if (this.remoteAudioStream) {
+      this.checkAudioPlaybackState(0);
+    } else {
+      // Fallback to smart delay if no stream available
+      this.handleSmartDelay();
+    }
+  }
+
+  private handleSmartDelay(): void {
+    // Calculate delay based on audio buffer and network latency
+    const timeSinceLastChunk = Date.now() - this.lastAudioChunkTime;
+    const bufferDelay = Math.max(
+      0,
+      this.estimatedAudioDuration - timeSinceLastChunk,
+    );
+
+    // Add extra buffer for WebRTC playback delay (typically 100-500ms)
+    const webRtcDelay = 300; // ms
+    const totalDelay = bufferDelay + webRtcDelay;
+
+    console.log(
+      `Using smart delay strategy: ${totalDelay}ms (buffer: ${bufferDelay}ms, WebRTC: ${webRtcDelay}ms)`,
+    );
+
+    this.audioEndTimeout = setTimeout(() => {
+      console.log('Smart delay elapsed, stopping animation');
+      this.callbacks.onBotSpeaking?.(false);
+      this.audioEndTimeout = null;
+    }, totalDelay);
+  }
+
+  private checkAudioPlaybackState(attempt: number): void {
+    const maxAttempts = 50; // Maximum 5 seconds of checking
+
+    if (attempt >= maxAttempts) {
+      console.log('Max audio check attempts reached, forcing animation stop');
+      this.callbacks.onBotSpeaking?.(false);
+      return;
+    }
+
+    if (!this.remoteAudioStream) {
+      // Stream no longer available, stop animation
+      this.callbacks.onBotSpeaking?.(false);
+      return;
+    }
+
+    const audioTracks = this.remoteAudioStream.getAudioTracks();
+    if (audioTracks.length === 0 || audioTracks[0].readyState === 'ended') {
+      console.log(
+        `Audio track ended after ${attempt * 100}ms, stopping animation`,
+      );
+      this.callbacks.onBotSpeaking?.(false);
+      return;
+    }
+
+    // Continue checking
+    this.audioEndTimeout = setTimeout(() => {
+      this.checkAudioPlaybackState(attempt + 1);
+    }, 100);
+  }
+
   async endCall(): Promise<void> {
     try {
+      // Clear any pending timeouts
+      if (this.audioEndTimeout) {
+        clearTimeout(this.audioEndTimeout);
+        this.audioEndTimeout = null;
+      }
+
+      if (this.audioPlaybackCheckInterval) {
+        clearInterval(this.audioPlaybackCheckInterval);
+        this.audioPlaybackCheckInterval = null;
+      }
+
+      // Reset audio monitoring state
+      this.remoteAudioStream = null;
+      this.isAudioActuallyPlaying = false;
+
       if (this.dataChannel) {
         this.dataChannel.close();
         this.dataChannel = null;
