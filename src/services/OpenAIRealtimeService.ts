@@ -24,8 +24,7 @@ export interface RealtimeCallbacks {
 
 export class OpenAIRealtimeService {
   private peerConnection: RTCPeerConnection | null = null;
-  private dataChannel: any = null; // Using any for data channel as it's not properly typed
-  private localStream: MediaStream | null = null;
+  private dataChannel: any = null;
   private config: RealtimeConfig;
   private callbacks: RealtimeCallbacks;
 
@@ -61,15 +60,15 @@ export class OpenAIRealtimeService {
       };
 
       // Get local audio (microphone input)
-      this.localStream = await mediaDevices.getUserMedia({
+      const localStream = await mediaDevices.getUserMedia({
         audio: true,
         video: false,
       });
 
       // Add local audio track for microphone input
-      const audioTracks = this.localStream.getAudioTracks();
+      const audioTracks = localStream.getAudioTracks();
       if (audioTracks.length > 0) {
-        this.peerConnection.addTrack(audioTracks[0], this.localStream);
+        this.peerConnection.addTrack(audioTracks[0], localStream);
       }
 
       // Set up data channel for sending and receiving events (following official docs)
@@ -93,18 +92,19 @@ export class OpenAIRealtimeService {
               this.callbacks.onTranscriptReceived?.(delta);
             }
           } else if (data.type === 'output_audio_buffer.started') {
-            // Bot started speaking
+            // Bot started speaking - immediately set to true
             console.log('Bot started speaking');
             this.callbacks.onBotSpeaking?.(true);
           } else if (data.type === 'output_audio_buffer.stopped') {
-            // Bot stopped speaking
+            // Bot stopped sending audio data
             console.log('Bot stopped speaking');
             this.callbacks.onBotSpeaking?.(false);
           } else if (data.type === 'response.audio.delta') {
             // Handle audio data if needed
             this.callbacks.onAudioReceived?.(data.delta);
           } else if (data.type === 'response.audio.end') {
-            // Bot stopped speaking (alternative event)
+            // Alternative audio end event
+            console.log('Bot audio response ended');
             this.callbacks.onBotSpeaking?.(false);
           }
         } catch (error) {
@@ -160,11 +160,6 @@ export class OpenAIRealtimeService {
         this.dataChannel = null;
       }
 
-      if (this.localStream) {
-        this.localStream.getTracks().forEach(track => track.stop());
-        this.localStream = null;
-      }
-
       if (this.peerConnection) {
         this.peerConnection.close();
         this.peerConnection = null;
@@ -173,7 +168,7 @@ export class OpenAIRealtimeService {
       this.callbacks.onSessionEnd?.();
     } catch (error) {
       console.error('Error ending call:', error);
-      this.callbacks.onError?.(`Error ending call: ${error}`);
+      throw error;
     }
   }
 
@@ -230,6 +225,44 @@ export class OpenAIRealtimeService {
   }
 
   isCallActive(): boolean {
-    return (this.peerConnection as any)?.connectionState === 'connected';
+    return this.peerConnection?.connectionState === 'connected';
+  }
+
+  // Public method to send a trigger to start the bot talking
+  triggerResponse(prompt?: string): void {
+    if (!this.dataChannel || this.dataChannel.readyState !== 'open') {
+      console.warn('Data channel not ready for sending trigger');
+      return;
+    }
+
+    try {
+      // Send a conversation.item.create event to add a user message
+      const userMessage = {
+        type: 'conversation.item.create',
+        item: {
+          type: 'message',
+          role: 'user',
+          content: [
+            {
+              type: 'input_text',
+              text: prompt || 'Hello! Please start our conversation.',
+            },
+          ],
+        },
+      };
+
+      this.dataChannel.send(JSON.stringify(userMessage));
+      console.log('Trigger message sent:', prompt);
+
+      // Trigger response generation
+      const responseEvent = {
+        type: 'response.create',
+      };
+
+      this.dataChannel.send(JSON.stringify(responseEvent));
+      console.log('Response generation triggered');
+    } catch (error) {
+      console.error('Error sending trigger:', error);
+    }
   }
 }
