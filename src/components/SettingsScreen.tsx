@@ -2,6 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {View, Text, Switch, StyleSheet, TouchableOpacity} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useNavigation} from '@react-navigation/native';
+import {responsive} from '../utils/responsive';
 
 const STORAGE_KEY = 'startTalkingOnOpen';
 
@@ -48,25 +49,27 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#0a0a1a',
-    paddingTop: 60,
-    paddingHorizontal: 24,
+    paddingTop: responsive.isTablet
+      ? responsive.scale(80)
+      : responsive.scale(60),
+    paddingHorizontal: responsive.padding.horizontal,
   },
   backButton: {
     position: 'absolute',
-    top: 30,
-    left: 16,
+    top: responsive.isTablet ? responsive.scale(50) : responsive.scale(30),
+    left: responsive.scale(16),
     zIndex: 10,
   },
   backText: {
     color: '#4CAF50',
-    fontSize: 16,
+    fontSize: responsive.scaleFontSize(16),
     fontWeight: '600',
   },
   title: {
-    fontSize: 28,
+    fontSize: responsive.scaleFontSize(28),
     color: '#fff',
     fontWeight: '700',
-    marginBottom: 40,
+    marginBottom: responsive.scale(40),
     alignSelf: 'center',
   },
   row: {
@@ -74,15 +77,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: '#181a2a',
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 20,
+    borderRadius: responsive.scale(12),
+    padding: responsive.scale(20),
+    marginBottom: responsive.scale(20),
   },
   label: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: responsive.scaleFontSize(16),
     flex: 1,
-    marginRight: 10,
+    marginRight: responsive.scale(10),
   },
 });
 

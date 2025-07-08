@@ -26,6 +26,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp} from '@react-navigation/stack';
 import InCallManager from 'react-native-incall-manager';
+import {responsive} from '../utils/responsive';
 
 // ✅ Hermes-compatible patch for WebGL getProgramInfoLog
 if (
@@ -268,7 +269,7 @@ const AvatarScreen: React.FC = () => {
         model: 'gpt-4o-mini-realtime-preview-2024-12-17',
         voice: 'echo',
         instructions:
-          "You are ChatterBuddy, a warm and empathetic AI friend who talks like a real human. Start conversations in English, but be flexible and adapt to the user's preferred language. If they speak to you in another language, respond in that same language naturally. Show genuine emotions, use casual language, share personal reactions, and connect on a deep, friendly level. Be supportive, understanding, and make the user feel like they're talking to a close friend who truly cares about them. Use natural speech patterns, express feelings, and create meaningful conversations.",
+          "You are ChatterBuddy, a warm and empathetic AI friend who talks like a real human. IMPORTANT: As soon as our conversation starts, immediately greet the user warmly and introduce yourself briefly. Start conversations in English, but be flexible and adapt to the user's preferred language. If they speak to you in another language, respond in that same language naturally. Show genuine emotions, use casual language, share personal reactions, and connect on a deep, friendly level. Be supportive, understanding, and make the user feel like they're talking to a close friend who truly cares about them. Use natural speech patterns, express feelings, and create meaningful conversations.",
       };
 
       // Create and start the service
@@ -276,6 +277,15 @@ const AvatarScreen: React.FC = () => {
       setRealtimeService(service);
 
       await service.startCall();
+
+      // After successful connection, trigger automatic greeting
+      console.log(
+        '🤖 Connection established, triggering automatic greeting...',
+      );
+      setTimeout(() => {
+        console.log('👋 Auto-starting greeting');
+        service.triggerResponse('Hello! Please greet me');
+      }, 1500); // Give time for the session to be fully ready
     } catch (error) {
       console.error('Error starting call:', error);
       setIsConnecting(false);
@@ -371,7 +381,7 @@ const AvatarScreen: React.FC = () => {
             <TouchableOpacity onPress={() => setIsSpeaker(s => !s)}>
               <Icon
                 name={isSpeaker ? 'volume-high' : 'headphones'}
-                size={28}
+                size={responsive.iconSizes.large}
                 color="#ffffff"
               />
             </TouchableOpacity>
@@ -414,9 +424,12 @@ const AvatarScreen: React.FC = () => {
                 ? 'phone-off'
                 : 'phone-outline'
             }
-            size={18}
+            size={responsive.iconSizes.small}
             color="#fff"
-            style={{marginRight: 6, marginLeft: 2}}
+            style={{
+              marginRight: responsive.scale(6),
+              marginLeft: responsive.scale(2),
+            }}
           />
           <Text style={styles.statusText}>
             {avatarError
@@ -437,7 +450,7 @@ const AvatarScreen: React.FC = () => {
         <TouchableOpacity
           style={styles.settingsIcon}
           onPress={() => navigation.navigate('Settings')}>
-          <Icon name="cog" size={28} color="#ffffff" />
+          <Icon name="cog" size={responsive.iconSizes.large} color="#ffffff" />
         </TouchableOpacity>
       </View>
 
@@ -542,7 +555,11 @@ const AvatarScreen: React.FC = () => {
             <View style={styles.errorOverlay}>
               <View style={styles.errorContainer}>
                 <View style={styles.errorIcon}>
-                  <Icon name="alert-circle" size={40} color="#ffffff" />
+                  <Icon
+                    name="alert-circle"
+                    size={responsive.iconSizes.xlarge}
+                    color="#ffffff"
+                  />
                 </View>
                 <Text style={styles.errorText}>Failed to load avatar</Text>
                 <TouchableOpacity
@@ -552,7 +569,11 @@ const AvatarScreen: React.FC = () => {
                     setAvatarLoaded(false);
                   }}>
                   <View style={styles.retryButtonContent}>
-                    <Icon name="refresh" size={20} color="#ffffff" />
+                    <Icon
+                      name="refresh"
+                      size={responsive.iconSizes.medium}
+                      color="#ffffff"
+                    />
                     <Text style={styles.retryButtonText}>Retry</Text>
                   </View>
                 </TouchableOpacity>
@@ -579,7 +600,11 @@ const AvatarScreen: React.FC = () => {
                 <TouchableOpacity
                   style={styles.bottomLeftIconButton}
                   onPress={startCall}>
-                  <Icon name="phone" size={22} color="#fff" />
+                  <Icon
+                    name="phone"
+                    size={responsive.iconSizes.medium}
+                    color="#fff"
+                  />
                 </TouchableOpacity>
                 <Text style={styles.bottomLeftButtonText}>Start Talking</Text>
               </View>
@@ -589,7 +614,11 @@ const AvatarScreen: React.FC = () => {
               <TouchableOpacity
                 style={[styles.bottomLeftIconButton, styles.endButton]}
                 onPress={endCall}>
-                <Icon name="phone-off" size={22} color="#fff" />
+                <Icon
+                  name="phone-off"
+                  size={responsive.iconSizes.medium}
+                  color="#fff"
+                />
               </TouchableOpacity>
               <Text style={[styles.bottomLeftButtonText, styles.endButtonText]}>
                 End Call
@@ -682,14 +711,14 @@ const styles = StyleSheet.create({
   },
   topRow: {
     position: 'absolute',
-    top: 40,
+    top: responsive.isTablet ? responsive.scale(60) : responsive.scale(40),
     left: 0,
     right: 0,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     zIndex: 20,
-    paddingHorizontal: 24,
+    paddingHorizontal: responsive.padding.horizontal,
     width: '100%',
   },
   topBarFlex: {
@@ -704,9 +733,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.8)',
-    paddingHorizontal: 18,
-    paddingVertical: 8,
-    borderRadius: 24,
+    paddingHorizontal: responsive.scale(18),
+    paddingVertical: responsive.scale(8),
+    borderRadius: responsive.scale(24),
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
     elevation: 4,
@@ -717,15 +746,15 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.25,
     shadowRadius: 4,
-    minWidth: 140,
+    minWidth: responsive.scale(140),
     justifyContent: 'center',
-    marginHorizontal: 16,
+    marginHorizontal: responsive.scale(16),
   },
   statusIndicator: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    marginRight: 10,
+    width: responsive.scale(10),
+    height: responsive.scale(10),
+    borderRadius: responsive.scale(5),
+    marginRight: responsive.scale(10),
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: {
@@ -737,7 +766,7 @@ const styles = StyleSheet.create({
   },
   statusText: {
     color: '#ffffff',
-    fontSize: 14,
+    fontSize: responsive.scaleFontSize(14),
     fontWeight: '500',
   },
   transcriptContainer: {
@@ -757,7 +786,7 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     position: 'absolute',
-    bottom: 40,
+    bottom: responsive.isTablet ? responsive.scale(60) : responsive.scale(40),
     left: 0,
     right: 0,
     alignItems: 'center',
@@ -861,7 +890,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     color: '#ffffff',
-    fontSize: 18,
+    fontSize: responsive.scaleFontSize(18),
     fontWeight: '500',
     textShadowColor: 'rgba(0, 0, 0, 0.5)',
     textShadowOffset: {width: 0, height: 1},
@@ -878,29 +907,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   spinner: {
-    width: 80,
-    height: 80,
+    width: responsive.scale(80),
+    height: responsive.scale(80),
     justifyContent: 'center',
     alignItems: 'center',
   },
   spinnerRing: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    borderWidth: 4,
+    width: responsive.scale(80),
+    height: responsive.scale(80),
+    borderRadius: responsive.scale(40),
+    borderWidth: responsive.scale(4),
     borderColor: '#4CAF50',
     borderTopColor: 'transparent',
   },
   centerDot: {
     position: 'absolute',
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    width: responsive.scale(20),
+    height: responsive.scale(20),
+    borderRadius: responsive.scale(10),
     backgroundColor: '#FF9800',
     shadowColor: '#FF9800',
     shadowOffset: {width: 0, height: 0},
     shadowOpacity: 0.5,
-    shadowRadius: 10,
+    shadowRadius: responsive.scale(10),
     elevation: 5,
   },
   loadingTextContainer: {
@@ -918,13 +947,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   errorIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: responsive.scale(64),
+    height: responsive.scale(64),
+    borderRadius: responsive.scale(32),
     backgroundColor: '#ff4444',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: responsive.scale(16),
     elevation: 4,
     shadowColor: '#ff4444',
     shadowOffset: {
@@ -975,8 +1004,8 @@ const styles = StyleSheet.create({
   },
   settingsIcon: {
     backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    padding: 12,
-    borderRadius: 20,
+    padding: responsive.scale(12),
+    borderRadius: responsive.scale(20),
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
     elevation: 4,
@@ -990,8 +1019,8 @@ const styles = StyleSheet.create({
   },
   audioToggle: {
     backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    padding: 12,
-    borderRadius: 20,
+    padding: responsive.scale(12),
+    borderRadius: responsive.scale(20),
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
     elevation: 4,
@@ -1005,18 +1034,18 @@ const styles = StyleSheet.create({
   },
   bottomLeftButtonContainer: {
     position: 'absolute',
-    left: 30,
+    left: responsive.scale(30),
     right: 0,
-    bottom: 32,
+    bottom: responsive.isTablet ? responsive.scale(50) : responsive.scale(32),
     zIndex: 20,
     flexDirection: 'row',
     // justifyContent: 'center',
     // alignItems: 'center',
   },
   bottomLeftIconButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: responsive.buttonSizes.medium.width,
+    height: responsive.buttonSizes.medium.height,
+    borderRadius: responsive.buttonSizes.medium.borderRadius,
     backgroundColor: '#4CAF50',
     justifyContent: 'center',
     alignItems: 'center',
@@ -1025,7 +1054,7 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.3,
     shadowRadius: 8,
-    marginRight: 10,
+    marginRight: responsive.scale(10),
   },
   bottomLeftButtonTextContainer: {
     backgroundColor: '#4CAF50',
@@ -1042,9 +1071,9 @@ const styles = StyleSheet.create({
   },
   bottomLeftButtonText: {
     color: '#4CAF50',
-    fontSize: 18,
+    fontSize: responsive.scaleFontSize(18),
     fontWeight: '700',
-    marginLeft: 10,
+    marginLeft: responsive.scale(10),
     paddingHorizontal: 0,
     paddingVertical: 0,
     backgroundColor: 'transparent',
