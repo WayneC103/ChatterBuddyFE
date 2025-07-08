@@ -117,6 +117,9 @@ export class OpenAIRealtimeService {
               const audioDataSize = data.delta.length || 1024; // fallback size
               const estimatedMs = (audioDataSize / (16000 * 2)) * 1000;
               this.estimatedAudioDuration = Math.max(estimatedMs, 500); // minimum 500ms buffer
+              console.log(
+                `🎧 Audio chunk received: ${audioDataSize} bytes, estimated duration: ${this.estimatedAudioDuration}ms`,
+              );
             }
             this.callbacks.onAudioReceived?.(data.delta);
           } else if (data.type === 'output_audio_buffer.stopped') {
@@ -242,11 +245,33 @@ export class OpenAIRealtimeService {
   }
 
   private handleStreamMonitoring(): void {
-    console.log('Using stream monitoring strategy');
+    console.log('🎛️ Using stream monitoring strategy');
     if (this.remoteAudioStream) {
+      // Start stream monitoring
       this.checkAudioPlaybackState(0);
+
+      // Also set a backup timer based on estimated audio duration + reasonable buffer
+      const timeSinceLastChunk = Date.now() - this.lastAudioChunkTime;
+      const remainingAudio = Math.max(
+        0,
+        this.estimatedAudioDuration - timeSinceLastChunk,
+      );
+      const backupDelay = Math.max(remainingAudio + 300, 600); // 300ms buffer, minimum 600ms
+      console.log(
+        `⏱️ Setting backup timer for ${backupDelay}ms (remaining: ${remainingAudio}ms, buffer: 300ms)`,
+      );
+
+      setTimeout(() => {
+        // Only stop if we're still monitoring (haven't stopped via stream monitoring)
+        if (this.audioEndTimeout) {
+          console.log('⚠️ Backup timer triggered - forcing animation stop');
+          clearTimeout(this.audioEndTimeout);
+          this.audioEndTimeout = null;
+          this.callbacks.onBotSpeaking?.(false);
+        }
+      }, backupDelay);
     } else {
-      // Fallback to smart delay if no stream available
+      console.log('⚠️ No stream available, falling back to smart delay');
       this.handleSmartDelay();
     }
   }
@@ -275,25 +300,60 @@ export class OpenAIRealtimeService {
   }
 
   private checkAudioPlaybackState(attempt: number): void {
-    const maxAttempts = 50; // Maximum 5 seconds of checking
+    const maxAttempts = 15; // Maximum 1.5 seconds of checking (more reasonable)
+
+    console.log(`🔍 Stream check attempt ${attempt + 1}/${maxAttempts}`);
 
     if (attempt >= maxAttempts) {
-      console.log('Max audio check attempts reached, forcing animation stop');
+      console.log(
+        '⏰ Max audio check attempts reached, forcing animation stop',
+      );
       this.callbacks.onBotSpeaking?.(false);
       return;
     }
 
     if (!this.remoteAudioStream) {
-      // Stream no longer available, stop animation
+      console.log('❌ No remote audio stream, stopping animation');
       this.callbacks.onBotSpeaking?.(false);
       return;
     }
 
     const audioTracks = this.remoteAudioStream.getAudioTracks();
-    if (audioTracks.length === 0 || audioTracks[0].readyState === 'ended') {
+
+    if (attempt === 0) {
+      console.log(`🎵 Audio tracks found: ${audioTracks.length}`);
+    }
+
+    if (audioTracks.length === 0) {
+      console.log('❌ No audio tracks found, stopping animation');
+      this.callbacks.onBotSpeaking?.(false);
+      return;
+    }
+
+    const audioTrack = audioTracks[0];
+
+    if (attempt === 0 || attempt % 5 === 0) {
+      // Log less frequently to reduce noise
       console.log(
-        `Audio track ended after ${attempt * 100}ms, stopping animation`,
+        `🎯 Audio track state: "${audioTrack.readyState}", enabled: ${audioTrack.enabled}, muted: ${audioTrack.muted}`,
       );
+    }
+
+    // Check multiple conditions for track ending
+    const isTrackEnded = audioTrack.readyState === 'ended';
+    const isTrackDisabled = !audioTrack.enabled;
+
+    if (isTrackEnded || isTrackDisabled) {
+      console.log(
+        `✅ Audio track ended after ${attempt * 100}ms (state: ${
+          audioTrack.readyState
+        }, enabled: ${audioTrack.enabled}), stopping animation`,
+      );
+      // Clear the timeout since we're stopping via stream detection
+      if (this.audioEndTimeout) {
+        clearTimeout(this.audioEndTimeout);
+        this.audioEndTimeout = null;
+      }
       this.callbacks.onBotSpeaking?.(false);
       return;
     }
