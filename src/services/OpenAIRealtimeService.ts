@@ -405,18 +405,8 @@ export class OpenAIRealtimeService {
         voice: this.config.voice || 'alloy',
       };
 
-      console.log(
-        'Making request to:',
-        'https://tidy-ray-obviously.ngrok-free.app/api/openai/ephemeral-key',
-      );
-      console.log('Request body:', JSON.stringify(requestBody, null, 2));
-      console.log('Request headers:', {
-        Authorization: 'Bearer oLpqgPOKSM46Q4oBMNoBCg5akasjd2jhv1',
-        'Content-Type': 'application/json',
-      });
-
       const response = await axios.post(
-        'https://tidy-ray-obviously.ngrok-free.app/api/openai/ephemeral-key',
+        'http://13.238.122.111/api/openai/ephemeral-key',
         requestBody,
         {
           headers: {
