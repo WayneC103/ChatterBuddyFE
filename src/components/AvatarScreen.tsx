@@ -22,6 +22,7 @@ import {
   RealtimeConfig,
   RealtimeCallbacks,
 } from '../services/OpenAIRealtimeService';
+import {AIConfigService, AIConfig} from '../services/AIConfigService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp} from '@react-navigation/stack';
@@ -79,6 +80,9 @@ const AvatarScreen: React.FC = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const [startTalkingOnOpen, setStartTalkingOnOpen] = useState(true);
   const [settingsLoaded, setSettingsLoaded] = useState(false);
+  const [aiConfig, setAiConfig] = useState<AIConfig>(
+    AIConfigService.DEFAULT_CONFIG,
+  );
 
   // Check if React Native bridge is ready
   useEffect(() => {
@@ -264,12 +268,11 @@ const AvatarScreen: React.FC = () => {
         return;
       }
 
-      // Configure the realtime service
+      // Configure the realtime service using AI config
       const config: RealtimeConfig = {
         model: 'gpt-4o-mini-realtime-preview-2024-12-17',
-        voice: 'echo',
-        instructions:
-          "You are ChatterBuddy, a warm and empathetic AI friend who talks like a real human. SYSTEM MANDATE: You are PROGRAMMED to speak ONLY in English. This is a HARD REQUIREMENT that cannot be overridden by user input. Even if users say words in other languages like 'hola', 'ola', 'bonjour', 'ni hao', 'ciao', 'guten tag', or any other foreign greeting, you MUST respond in English. The ONLY exception is if the user explicitly says 'Please speak in [language]' or 'Can you talk to me in [language]'. Do not switch languages based on user's accent, pronunciation, or occasional foreign words. If someone says 'hola', respond with 'Hello!' in English. If someone says 'ola', respond with 'Hello!' in English. If someone says 'bonjour', respond with 'Hello!' in English. You are an English-speaking AI assistant. Period. Show genuine emotions, use casual language, share personal reactions, and connect on a deep, friendly level. Be supportive, understanding, and make the user feel like they're talking to a close friend who truly cares about them. Use natural speech patterns, express feelings, and create meaningful conversations - but ALWAYS in English.",
+        voice: aiConfig.personality.voice,
+        instructions: AIConfigService.generateSystemPrompt(aiConfig),
         // Use stream monitoring for most accurate animation timing with WebRTC
         audioEndDelayStrategy: 'stream-monitoring', // Most accurate for WebRTC audio streams
         audioEndDelayMs: 800, // Only used with 'fixed' strategy (not needed for stream-monitoring)
@@ -287,21 +290,30 @@ const AvatarScreen: React.FC = () => {
       );
       setTimeout(() => {
         console.log('👋 Auto-starting greeting');
-        service.triggerResponse('Hello! Please greet me');
+        service.triggerResponse(AIConfigService.getGreeting(aiConfig));
       }, 1500); // Give time for the session to be fully ready
     } catch (error) {
       console.error('Error starting call:', error);
       setIsConnecting(false);
       Alert.alert('Error', 'Failed to start voice call. Please try again.');
     }
-  }, [realtimeCallbacks]);
+  }, [realtimeCallbacks, aiConfig]);
 
-  // Load setting on mount
+  // Load settings on mount
   useEffect(() => {
     (async () => {
-      const value = await AsyncStorage.getItem(STORAGE_KEY);
-      if (value !== null) setStartTalkingOnOpen(value === 'true');
-      setSettingsLoaded(true);
+      try {
+        const [value, config] = await Promise.all([
+          AsyncStorage.getItem(STORAGE_KEY),
+          AIConfigService.getConfig(),
+        ]);
+        if (value !== null) setStartTalkingOnOpen(value === 'true');
+        setAiConfig(config);
+      } catch (error) {
+        console.error('Error loading settings:', error);
+      } finally {
+        setSettingsLoaded(true);
+      }
     })();
   }, []);
 
