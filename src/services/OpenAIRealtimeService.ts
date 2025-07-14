@@ -4,6 +4,8 @@ import {
   mediaDevices,
   MediaStream,
 } from 'react-native-webrtc';
+import {Platform} from 'react-native';
+import InCallManager from 'react-native-incall-manager';
 import axios from 'axios';
 
 export interface RealtimeConfig {
@@ -43,11 +45,36 @@ export class OpenAIRealtimeService {
 
   async startCall(): Promise<void> {
     try {
+      // iOS-specific audio session setup
+      if (Platform.OS === 'ios') {
+        try {
+          InCallManager.startProximitySensor();
+          InCallManager.setKeepScreenOn(true);
+          InCallManager.setForceSpeakerphoneOn(false); // Will be controlled by UI
+        } catch (error) {
+          console.warn('iOS audio session setup warning:', error);
+        }
+      }
+
       // Get ephemeral key from backend
       const ephemeralKey = await this.getEphemeralKey();
 
-      // Create peer connection following official documentation
-      this.peerConnection = new RTCPeerConnection();
+      // Create peer connection with platform-specific configuration
+      const pcConfig = {
+        iceServers: [
+          {
+            urls: ['stun:stun.l.google.com:19302'],
+          },
+        ],
+        // iOS-specific optimizations
+        ...(Platform.OS === 'ios' && {
+          iceCandidatePoolSize: 10,
+          bundlePolicy: 'max-bundle' as const,
+          rtcpMuxPolicy: 'require' as const,
+        }),
+      };
+
+      this.peerConnection = new RTCPeerConnection(pcConfig);
 
       // Set up connection state monitoring (cast to any to avoid TypeScript issues)
       (this.peerConnection as any).onconnectionstatechange = () => {
@@ -389,6 +416,17 @@ export class OpenAIRealtimeService {
       if (this.peerConnection) {
         this.peerConnection.close();
         this.peerConnection = null;
+      }
+
+      // iOS-specific cleanup
+      if (Platform.OS === 'ios') {
+        try {
+          InCallManager.stopProximitySensor();
+          InCallManager.setKeepScreenOn(false);
+          InCallManager.stop();
+        } catch (error) {
+          console.warn('iOS audio session cleanup warning:', error);
+        }
       }
 
       this.callbacks.onSessionEnd?.();

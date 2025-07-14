@@ -1,41 +1,105 @@
-import {Dimensions} from 'react-native';
+import {Dimensions, Platform} from 'react-native';
 
 const {width: screenWidth, height: screenHeight} = Dimensions.get('window');
 
-// Base dimensions (iPhone 11/12 as reference)
-const baseWidth = 414;
-const baseHeight = 896;
+// Base dimensions (iPhone 13/14 as reference - more modern baseline)
+const baseWidth = 390;
+const baseHeight = 844;
+
+// iOS device detection
+export const isIOS = () => Platform.OS === 'ios';
+
+// Enhanced device type detection
+export const getDeviceType = () => {
+  const aspectRatio = screenHeight / screenWidth;
+  const diagonal = Math.sqrt(
+    screenWidth * screenWidth + screenHeight * screenHeight,
+  );
+
+  if (screenWidth >= 768) {
+    if (screenWidth >= 1024) {
+      return 'ipadLarge'; // iPad Pro
+    }
+    return 'ipad'; // iPad regular/mini
+  }
+
+  if (isIOS()) {
+    // iPhone detection based on screen dimensions
+    if (screenWidth >= 428) return 'iphoneLarge'; // iPhone 14 Pro Max, 15 Plus
+    if (screenWidth >= 414) return 'iphoneMedium'; // iPhone 11, 12, 13, 14
+    if (screenWidth >= 390) return 'iphoneRegular'; // iPhone 12 mini, 13 mini, 14, 15
+    if (screenWidth >= 375) return 'iphoneSmall'; // iPhone 6/7/8, X/XS/11 Pro
+    return 'iphoneTiny'; // iPhone SE
+  }
+
+  // Android tablet/phone detection
+  if (screenWidth >= 600 && aspectRatio < 1.8) {
+    return 'androidTablet';
+  }
+
+  return 'androidPhone';
+};
 
 // Check if device is tablet
 export const isTablet = () => {
-  const aspectRatio = screenHeight / screenWidth;
-  return screenWidth >= 768 && aspectRatio < 1.6;
+  const deviceType = getDeviceType();
+  return deviceType.includes('ipad') || deviceType === 'androidTablet';
 };
 
-// Scale function for responsive sizing
+// Scale function for responsive sizing with device-specific adjustments
 export const scale = (size: number): number => {
+  const deviceType = getDeviceType();
   const scaleWidth = screenWidth / baseWidth;
   const scaleHeight = screenHeight / baseHeight;
   const minScale = Math.min(scaleWidth, scaleHeight);
 
-  // For tablets, limit scaling to prevent UI from becoming too large
-  if (isTablet()) {
-    return size * Math.min(minScale, 1.5);
+  switch (deviceType) {
+    case 'ipadLarge':
+      // iPad Pro - limit scaling to prevent UI from becoming too large
+      return size * Math.min(minScale, 1.6);
+    case 'ipad':
+      // Regular iPad - moderate scaling
+      return size * Math.min(minScale, 1.4);
+    case 'iphoneLarge':
+      // Large iPhones - slight scaling boost
+      return size * Math.min(minScale, 1.2);
+    case 'iphoneTiny':
+      // iPhone SE - ensure UI doesn't become too small
+      return size * Math.max(minScale, 0.85);
+    case 'androidTablet':
+      // Android tablets
+      return size * Math.min(minScale, 1.5);
+    default:
+      // Regular phones
+      return size * minScale;
   }
-
-  return size * minScale;
 };
 
-// Responsive font scaling
+// Responsive font scaling with iOS-specific adjustments
 export const scaleFontSize = (size: number): number => {
+  const deviceType = getDeviceType();
   const scaleWidth = screenWidth / baseWidth;
 
-  if (isTablet()) {
-    // More conservative font scaling for tablets
-    return size * Math.min(scaleWidth, 1.3);
+  switch (deviceType) {
+    case 'ipadLarge':
+      // iPad Pro - conservative font scaling
+      return size * Math.min(scaleWidth, 1.4);
+    case 'ipad':
+      // Regular iPad - moderate font scaling
+      return size * Math.min(scaleWidth, 1.3);
+    case 'iphoneLarge':
+      // Large iPhones - balanced scaling
+      return size * Math.min(scaleWidth, 1.15);
+    case 'iphoneTiny':
+      // iPhone SE - ensure readability
+      return size * Math.max(scaleWidth, 0.9);
+    case 'androidTablet':
+      // Android tablets
+      return size * Math.min(scaleWidth, 1.3);
+    default:
+      // Regular phones - standard scaling
+      return size * Math.min(scaleWidth, 1.1);
   }
-
-  return size * scaleWidth;
 };
 
 // Responsive horizontal scaling
@@ -119,6 +183,8 @@ export const responsive = {
   scaleHorizontal,
   scaleVertical,
   isTablet: isTablet(),
+  isIOS: isIOS(),
+  deviceType: getDeviceType(),
   padding: getResponsivePadding(),
   iconSizes: getIconSizes(),
   buttonSizes: getButtonSizes(),

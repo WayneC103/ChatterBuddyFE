@@ -11,6 +11,12 @@ import {
   Platform,
   Animated,
 } from 'react-native';
+import {
+  request,
+  PERMISSIONS,
+  RESULTS,
+  Permission,
+} from 'react-native-permissions';
 import Config from 'react-native-config';
 import {Canvas} from '@react-three/fiber/native';
 import {Suspense} from 'react';
@@ -70,7 +76,7 @@ const AvatarScreen: React.FC = () => {
   const [avatarLoaded, setAvatarLoaded] = useState(false);
   const [avatarError, setAvatarError] = useState<string | undefined>();
   const [isBridgeReady, setIsBridgeReady] = useState(false);
-  const [isSpeaker, setIsSpeaker] = useState(Platform.OS === 'android');
+  const [isSpeaker, setIsSpeaker] = useState(true); // Default to speaker for both platforms
   const [hasEndedCall, setHasEndedCall] = useState(false);
 
   // Animation values for loading indicator
@@ -184,28 +190,60 @@ const AvatarScreen: React.FC = () => {
     [],
   );
 
-  // Request microphone permissions
+  // Request microphone permissions for both iOS and Android
   const requestMicrophonePermission = async (): Promise<boolean> => {
-    if (Platform.OS === 'android') {
-      try {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
-          {
-            title: 'Microphone Permission',
-            message:
-              'ChatterBuddy needs access to your microphone for voice conversations.',
-            buttonNeutral: 'Ask Me Later',
-            buttonNegative: 'Cancel',
-            buttonPositive: 'OK',
-          },
-        );
-        return granted === PermissionsAndroid.RESULTS.GRANTED;
-      } catch (err) {
-        console.warn(err);
-        return false;
+    try {
+      let permission: Permission;
+
+      if (Platform.OS === 'ios') {
+        permission = PERMISSIONS.IOS.MICROPHONE;
+      } else {
+        permission = PERMISSIONS.ANDROID.RECORD_AUDIO;
       }
+
+      const result = await request(permission);
+
+      switch (result) {
+        case RESULTS.GRANTED:
+          console.log('Microphone permission granted');
+          return true;
+        case RESULTS.DENIED:
+          console.log('Microphone permission denied');
+          return false;
+        case RESULTS.BLOCKED:
+          console.log('Microphone permission blocked');
+          Alert.alert(
+            'Permission Required',
+            'Microphone permission is required for voice conversations. Please enable it in Settings.',
+            [
+              {text: 'Cancel', style: 'cancel'},
+              {
+                text: 'Open Settings',
+                onPress: () => {
+                  // On iOS, this would ideally open the Settings app
+                  // but React Native doesn't have a built-in way to do this
+                  console.log(
+                    'User should manually enable microphone in Settings',
+                  );
+                },
+              },
+            ],
+          );
+          return false;
+        case RESULTS.UNAVAILABLE:
+          console.log('Microphone not available on this device');
+          Alert.alert(
+            'Microphone Unavailable',
+            'Microphone is not available on this device.',
+          );
+          return false;
+        default:
+          return false;
+      }
+    } catch (error) {
+      console.error('Error requesting microphone permission:', error);
+      return false;
     }
-    return true; // iOS handles permissions automatically
   };
 
   // Callback handlers for the realtime service
@@ -374,14 +412,18 @@ const AvatarScreen: React.FC = () => {
 
   const buttonConfig = getButtonConfig();
 
-  // Handle audio route change
+  // Handle audio route change for both iOS and Android
   useEffect(() => {
-    if (Platform.OS === 'android') {
+    try {
       if (isSpeaker) {
         InCallManager.setSpeakerphoneOn(true);
+        console.log('Audio route set to speaker');
       } else {
         InCallManager.setSpeakerphoneOn(false);
+        console.log('Audio route set to earpiece/headphones');
       }
+    } catch (error) {
+      console.warn('Error setting audio route:', error);
     }
   }, [isSpeaker]);
 
@@ -392,15 +434,13 @@ const AvatarScreen: React.FC = () => {
       {/* Settings and Connection Status Row (flexbox) */}
       <View style={styles.topRow}>
         <View style={styles.audioToggle}>
-          {Platform.OS === 'android' && (
-            <TouchableOpacity onPress={() => setIsSpeaker(s => !s)}>
-              <Icon
-                name={isSpeaker ? 'volume-high' : 'headphones'}
-                size={responsive.iconSizes.large}
-                color="#ffffff"
-              />
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity onPress={() => setIsSpeaker(s => !s)}>
+            <Icon
+              name={isSpeaker ? 'volume-high' : 'headphones'}
+              size={responsive.iconSizes.large}
+              color="#ffffff"
+            />
+          </TouchableOpacity>
         </View>
         <View style={styles.statusContainer}>
           <View
