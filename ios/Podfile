@@ -9,11 +9,6 @@ require Pod::Executable.execute_command('node', ['-p',
 platform :ios, min_ios_version_supported
 prepare_react_native_project!
 
-# React Native Permissions configuration
-setup_permissions([
-  'Microphone'
-])
-
 linkage = ENV['USE_FRAMEWORKS']
 if linkage != nil
   Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
@@ -65,6 +60,16 @@ target 'chatterBuddy' do
       if target.name == 'RNVectorIcons'
         target.build_configurations.each do |config|
           config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.1'
+        end
+      end
+    end
+
+    # React Native Permissions configuration (2025 method)
+    installer.pods_project.targets.each do |target|
+      if target.name == 'RNPermissions'
+        target.build_configurations.each do |config|
+          config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= ['$(inherited)']
+          config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] << 'PERMISSION_MICROPHONE=1'
         end
       end
     end
