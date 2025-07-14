@@ -35,6 +35,10 @@ target 'chatterBuddy' do
 
   config = use_native_modules!(config_command)
 
+  # Permissions configuration
+  permissions_path = '../node_modules/react-native-permissions/ios'
+  pod 'Permission-Microphone', :path => "#{permissions_path}/Microphone"
+
   use_react_native!(
     :path => config[:reactNativePath],
     # An absolute path to your application root.
@@ -54,5 +58,14 @@ target 'chatterBuddy' do
       :mac_catalyst_enabled => false,
       # :ccache_enabled => true
     )
+
+    # React Native Vector Icons configuration
+    installer.pods_project.targets.each do |target|
+      if target.name == 'RNVectorIcons'
+        target.build_configurations.each do |config|
+          config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.1'
+        end
+      end
+    end
   end
 end
