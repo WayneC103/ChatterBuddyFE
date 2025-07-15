@@ -519,7 +519,8 @@ const AvatarScreen: React.FC = () => {
               fov: 50,
             }}
             gl={{
-              antialias: true,
+              powerPreference: 'default',
+              antialias: false,
               alpha: false,
             }}
             onCreated={({gl, scene, camera, size, raycaster}) => {
