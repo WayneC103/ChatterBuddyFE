@@ -103,6 +103,11 @@ const AvatarScreen: React.FC = () => {
     checkBridgeReady();
   }, []);
 
+  // Hide status bar
+  useEffect(() => {
+    StatusBar.setHidden(true);
+  }, []);
+
   // Start loading animations
   useEffect(() => {
     if (!avatarLoaded && !avatarError) {
@@ -429,8 +434,6 @@ const AvatarScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <StatusBar hidden />
-
       {/* Settings and Connection Status Row (flexbox) */}
       <View style={styles.topRow}>
         <View style={styles.audioToggle}>
@@ -704,60 +707,6 @@ const AvatarScreen: React.FC = () => {
           </Text>
         </TouchableOpacity>
       )}
-
-      {/* Call Control Button */}
-      <View style={styles.buttonContainer}>
-        <View style={styles.talkIndicator}>
-          {/* Main microphone circle */}
-          {/* <View
-            style={[
-              styles.microphoneCircle,
-              {
-                backgroundColor: !isBridgeReady
-                  ? '#cccccc'
-                  : !avatarLoaded
-                  ? '#888888'
-                  : isConnecting || !realtimeService
-                  ? '#ff9800'
-                  : '#4CAF50',
-              },
-            ]}>
-            <Icon
-              name={
-                !isBridgeReady
-                  ? 'clock-outline'
-                  : !avatarLoaded
-                  ? 'clock-outline'
-                  : isConnecting || !realtimeService
-                  ? 'clock-outline'
-                  : 'microphone'
-              }
-              size={24}
-              color="#ffffff"
-            />
-          </View> */}
-        </View>
-
-        {/* Instruction text */}
-        {/* <Text style={styles.talkInstructionText}>
-          {!isBridgeReady
-            ? 'Initializing...'
-            : !avatarLoaded
-            ? 'Loading Avatar...'
-            : isConnecting || !realtimeService
-            ? 'Connecting...'
-            : 'Start talking'}
-        </Text>
-        <Text style={styles.talkSubText}>
-          {!isBridgeReady
-            ? 'Please wait'
-            : !avatarLoaded
-            ? 'Please wait while I prepare'
-            : isConnecting || !realtimeService
-            ? 'Please wait'
-            : "I'm here to help you"}
-        </Text> */}
-      </View>
     </View>
   );
 };
@@ -774,7 +723,7 @@ const styles = StyleSheet.create({
   },
   topRow: {
     position: "absolute",
-    top: responsive.isTablet ? responsive.scale(60) : responsive.scale(40),
+    top: responsive.isTablet ? responsive.scale(80) : responsive.scale(60),
     left: 0,
     right: 0,
     flexDirection: "row",
