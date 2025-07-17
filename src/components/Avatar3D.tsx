@@ -19,7 +19,7 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
   const group = useRef<Group>(null);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Load the GLB file using the latest approach
+  // Load the GLB file using useGLTF - this should be called directly as a hook
   const gltf = useGLTF(require("../../assets/rob-fi.glb"));
 
   // Extract animations safely

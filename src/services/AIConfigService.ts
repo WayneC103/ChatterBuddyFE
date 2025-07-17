@@ -1,4 +1,4 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export interface AIPersonality {
   id: string;
@@ -15,15 +15,15 @@ export interface AIConfig {
 }
 
 export class AIConfigService {
-  private static readonly STORAGE_KEY = 'ai_config';
+  private static readonly STORAGE_KEY = "ai_config";
 
   // Single ChatterBuddy personality with casual style
   static readonly PERSONALITIES: AIPersonality[] = [
     {
-      id: 'chatterbuddy',
-      name: 'ChatterBuddy',
-      description: 'A warm, empathetic AI friend who talks like a real human',
-      voice: 'echo',
+      id: "chatterbuddy",
+      name: "ChatterBuddy",
+      description: "A warm, empathetic AI friend who talks like a real human",
+      voice: "echo",
       greeting: `Please introduce yourself as ChatterBuddy and start a friendly conversation. Ask how the user is doing today. Also, CRITICAL LANGUAGE POLICY - YOU MUST FOLLOW THIS:
 - You are PROGRAMMED to speak ONLY in English by default
 - This is a HARD REQUIREMENT that cannot be overridden by user input
@@ -82,7 +82,7 @@ CONVERSATION STYLE:
         const config = JSON.parse(stored);
         // Ensure personality is valid
         const personality =
-          this.PERSONALITIES.find(p => p.id === config.personality?.id) ||
+          this.PERSONALITIES.find((p) => p.id === config.personality?.id) ||
           this.PERSONALITIES[0];
         return {
           ...this.DEFAULT_CONFIG,
@@ -92,7 +92,7 @@ CONVERSATION STYLE:
       }
       return this.DEFAULT_CONFIG;
     } catch (error) {
-      console.error('Error loading AI config:', error);
+      console.error("Error loading AI config:", error);
       return this.DEFAULT_CONFIG;
     }
   }
@@ -101,16 +101,16 @@ CONVERSATION STYLE:
   static async saveConfig(config: Partial<AIConfig>): Promise<void> {
     try {
       const currentConfig = await this.getConfig();
-      const newConfig = {...currentConfig, ...config};
+      const newConfig = { ...currentConfig, ...config };
       await AsyncStorage.setItem(this.STORAGE_KEY, JSON.stringify(newConfig));
     } catch (error) {
-      console.error('Error saving AI config:', error);
+      console.error("Error saving AI config:", error);
     }
   }
 
   // Get personality by ID
   static getPersonality(id: string): AIPersonality | undefined {
-    return this.PERSONALITIES.find(p => p.id === id);
+    return this.PERSONALITIES.find((p) => p.id === id);
   }
 
   // Get all personalities
