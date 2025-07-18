@@ -4406,10 +4406,10 @@ react-native-safe-area-context@^5.5.2, "react-native-safe-area-context@>= 4.0.0"
   resolved "https://registry.npmjs.org/react-native-safe-area-context/-/react-native-safe-area-context-5.5.2.tgz"
   integrity sha512-t4YVbHa9uAGf+pHMabGrb0uHrD5ogAusSu842oikJ3YKXcYp6iB4PTGl0EZNkUIR3pCnw/CXKn42OCfhsS0JIw==
 
-react-native-screens@^4.13.0, "react-native-screens@>= 4.0.0":
-  version "4.13.0"
-  resolved "https://registry.npmjs.org/react-native-screens/-/react-native-screens-4.13.0.tgz"
-  integrity sha512-WB0QeaevdfV+MR+CMh4BgL9ryYDK2Ia20Sk2dpM/3jKVqfN52l6wbk1Zo/wTHrwaR1UjK8zQjc6jRgdZFhW+mw==
+react-native-screens@^4.13.1, "react-native-screens@>= 4.0.0":
+  version "4.13.1"
+  resolved "https://registry.npmjs.org/react-native-screens/-/react-native-screens-4.13.1.tgz"
+  integrity sha512-EESsMAtyzYcL3gpAI2NKKiIo+Ew0fnX4P4b3Zy/+MTc6SJIo3foJbZwdIWd/SUBswOf7IYCvWBppg+D8tbwnsw==
   dependencies:
     react-freeze "^1.0.0"
     react-native-is-edge-to-edge "^1.2.1"
@@ -4432,7 +4432,7 @@ react-native-webrtc@^124.0.5:
     debug "4.3.4"
     event-target-shim "6.0.2"
 
-react-native@*, "react-native@^0.0.0-0 || >=0.65 <1.0", react-native@>=0.40.0, react-native@>=0.60.0, react-native@>=0.70.0, react-native@>=0.78, react-native@0.79.5:
+react-native@*, "react-native@^0.0.0-0 || >=0.65 <1.0", react-native@>=0.40.0, react-native@>=0.60.0, react-native@>=0.70.0, react-native@>=0.78, react-native@0.79-stable:
   version "0.79.5"
   resolved "https://registry.npmjs.org/react-native/-/react-native-0.79.5.tgz"
   integrity sha512-jVihwsE4mWEHZ9HkO1J2eUZSwHyDByZOqthwnGrVZCh6kTQBCm4v8dicsyDa6p0fpWNE5KicTcpX/XXl0ASJFg==
