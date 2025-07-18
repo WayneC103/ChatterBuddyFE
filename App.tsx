@@ -11,7 +11,6 @@ import AvatarScreen from "./src/components/AvatarScreen";
 import SettingsScreen from "./src/components/SettingsScreen";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
-import { responsive } from "./src/utils/responsive";
 
 const Stack = createStackNavigator();
 
